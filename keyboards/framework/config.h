@@ -62,7 +62,7 @@
 // RGB config
 
 // Turn off RGB LED when USB suspended
-#define RGB_DISABLE_WHEN_USB_SUSPENDED
+#define RGB_MATRIX_SLEEP
 
 // RGB Matrix Animation modes. Explicitly enabled
 // For full list of effects, see:
@@ -126,7 +126,7 @@
 #define ENABLE_RGB_MATRIX_SOLID_SPLASH
 #define ENABLE_RGB_MATRIX_SOLID_MULTISPLASH
 
-#define ISSI_CUSTOM_PWM_FREQ
+#define IS31FL3743A_PWM_FREQUENCY IS31FL3743A_PWM_FREQUENCY_32K_HZ
 
 /*
  * Feature disable options
