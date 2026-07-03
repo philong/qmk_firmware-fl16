@@ -4,7 +4,7 @@
 #include QMK_KEYBOARD_H
 
 #if defined(RGB_MATRIX_ENABLE)
-const is31_led g_is31_leds[RGB_MATRIX_LED_COUNT] = {
+const is31fl3743a_led_t PROGMEM g_is31fl3743a_leds[IS31FL3743A_LED_COUNT] = {
 /* Refer to IS31 manual for these locations
  *   driver
  *   |   R location
@@ -12,35 +12,35 @@ const is31_led g_is31_leds[RGB_MATRIX_LED_COUNT] = {
  *   |   |         |         B location
  *   |   |         |         | */
     // Re-arranged in LED ID order so it matches with the physical location array
-    {0,  CS3_SW1,  CS2_SW1,  CS1_SW1}, // LED 1
-    {0,  CS3_SW2,  CS2_SW2,  CS1_SW2}, // LED 2
-    {0,  CS3_SW3,  CS2_SW3,  CS1_SW3}, // LED 3
-    {0,  CS3_SW4,  CS2_SW4,  CS1_SW4}, // LED 4
+    {0,  SW1_CS3,  SW1_CS2,  SW1_CS1}, // LED 1
+    {0,  SW2_CS3,  SW2_CS2,  SW2_CS1}, // LED 2
+    {0,  SW3_CS3,  SW3_CS2,  SW3_CS1}, // LED 3
+    {0,  SW4_CS3,  SW4_CS2,  SW4_CS1}, // LED 4
 
-    {0,  CS6_SW1,  CS5_SW1,  CS4_SW1}, // LED 5
-    {0,  CS6_SW3,  CS5_SW3,  CS4_SW3}, // LED 6
-    {0,  CS6_SW4,  CS5_SW4,  CS4_SW4}, // LED 7
-    {0,  CS6_SW2,  CS5_SW2,  CS4_SW2}, // LED 8
+    {0,  SW1_CS6,  SW1_CS5,  SW1_CS4}, // LED 5
+    {0,  SW3_CS6,  SW3_CS5,  SW3_CS4}, // LED 6
+    {0,  SW4_CS6,  SW4_CS5,  SW4_CS4}, // LED 7
+    {0,  SW2_CS6,  SW2_CS5,  SW2_CS4}, // LED 8
 
-    {0,  CS9_SW1,  CS8_SW1,  CS7_SW1}, // LED 9
-    {0,  CS9_SW2,  CS8_SW2,  CS7_SW2}, // LED 10
-    {0,  CS9_SW3,  CS8_SW3,  CS7_SW3}, // LED 11
-    {0,  CS9_SW4,  CS8_SW4,  CS7_SW4}, // LED 12
+    {0,  SW1_CS9,  SW1_CS8,  SW1_CS7}, // LED 9
+    {0,  SW2_CS9,  SW2_CS8,  SW2_CS7}, // LED 10
+    {0,  SW3_CS9,  SW3_CS8,  SW3_CS7}, // LED 11
+    {0,  SW4_CS9,  SW4_CS8,  SW4_CS7}, // LED 12
 
-    {0, CS12_SW1, CS11_SW1, CS10_SW1}, // LED 13
-    {0, CS12_SW2, CS11_SW2, CS10_SW2}, // LED 14
-    {0, CS12_SW3, CS11_SW3, CS10_SW3}, // LED 15
-    {0, CS12_SW4, CS11_SW4, CS10_SW4}, // LED 16
+    {0, SW1_CS12, SW1_CS11, SW1_CS10}, // LED 13
+    {0, SW2_CS12, SW2_CS11, SW2_CS10}, // LED 14
+    {0, SW3_CS12, SW3_CS11, SW3_CS10}, // LED 15
+    {0, SW4_CS12, SW4_CS11, SW4_CS10}, // LED 16
 
-    {0, CS15_SW2, CS14_SW2, CS13_SW2}, // LED 17
-    {0, CS15_SW3, CS14_SW3, CS13_SW3}, // LED 18
-    {0, CS15_SW1, CS14_SW1, CS13_SW1}, // LED 19
-    {0, CS15_SW4, CS14_SW4, CS13_SW4}, // LED 20
+    {0, SW2_CS15, SW2_CS14, SW2_CS13}, // LED 17
+    {0, SW3_CS15, SW3_CS14, SW3_CS13}, // LED 18
+    {0, SW1_CS15, SW1_CS14, SW1_CS13}, // LED 19
+    {0, SW4_CS15, SW4_CS14, SW4_CS13}, // LED 20
 
-    {0, CS18_SW1, CS17_SW1, CS16_SW1}, // LED 21
-    {0, CS18_SW2, CS17_SW2, CS16_SW2}, // LED 22
-    {0, CS18_SW3, CS17_SW3, CS16_SW3}, // LED 23
-    {0, CS18_SW4, CS17_SW4, CS16_SW4}, // LED 24
+    {0, SW1_CS18, SW1_CS17, SW1_CS16}, // LED 21
+    {0, SW2_CS18, SW2_CS17, SW2_CS16}, // LED 22
+    {0, SW3_CS18, SW3_CS17, SW3_CS16}, // LED 23
+    {0, SW4_CS18, SW4_CS17, SW4_CS16}, // LED 24
 };
 
 led_config_t g_led_config = { {
