@@ -52,10 +52,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * 24 total
      */
     [_FN] = LAYOUT(
-        RGB_TOG, RGB_SPI, RGB_HUI, RGB_SAI,
-        _______, RGB_SPD, RGB_HUD, RGB_SAD,
-        _______, _______, _______, RGB_MOD,
-        _______, _______, _______, RGB_RMOD,
+        RM_TOGG, RM_SPDU, RM_HUEU, RM_SATU,
+        _______, RM_SPDD, RM_HUED, RM_SATD,
+        _______, _______, _______, RM_NEXT,
+        _______, _______, _______, RM_PREV,
         _______, _______, _______, BL_STEP,
         _______, _______, _______, BL_STEP
     ),
