@@ -516,7 +516,8 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor = {
         .Size                   = sizeof(USB_Descriptor_Device_t),
         .Type                   = DTYPE_Device
     },
-    .USBSpecification           = VERSION_BCD(2, 0, 0),
+    // Needs to be 2.0.1 or 2.1.0 to advertise the BOS descriptor
+    .USBSpecification           = VERSION_BCD(2, 1, 0),
 
 #if VIRTSER_ENABLE
     .Class                      = USB_CSCP_IADDeviceClass,
@@ -541,6 +542,27 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor = {
     .SerialNumStrIndex          = 0x00,
 #endif // HAS_SERIAL_NUMBER
     .NumberOfConfigurations     = FIXED_NUM_CONFIGURATIONS
+};
+
+/*
+ * BOS descriptor
+ */
+const USB_Descriptor_Bos_t PROGMEM BosDescriptor = {
+    .Header = {
+        .Size                   = 0x05,
+        .Type                   = DTYPE_Bos
+    },
+    .TotalLength                = sizeof(USB_Descriptor_Bos_t), // 0x000C
+    .NumDeviceCaps              = 0x01,
+
+    .Usb20ExtensionDevCap       = {
+        .Header = {
+            .Size = sizeof(USB_Descriptor_Capability_Usb20Ext_t), // 0x07
+            .Type = DTYPE_DeviceCapability,
+        },
+        .DevCapabilityType      = 2, // USB 2.0 Extension
+        .Bytes                  = {0x00, 0x00, 0x00, 0x00},
+    },
 };
 
 #ifndef USB_MAX_POWER_CONSUMPTION
@@ -1229,6 +1251,19 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const 
         case DTYPE_Configuration:
             Address = &ConfigurationDescriptor;
             Size    = sizeof(USB_Descriptor_Configuration_t);
+
+            break;
+        case DTYPE_Bos:
+            Address = &BosDescriptor;
+            Size    = 0x05;
+            if (wLength >= sizeof(USB_Descriptor_Bos_t)) {
+                Size = sizeof(USB_Descriptor_Bos_t);
+            }
+#ifdef OS_DETECTION_ENABLE
+            // Only "real" operating systems request the BOS descriptor;
+            // pre-boot environments (UEFI/BIOS, bootloaders) don't.
+            process_bos_request(wLength);
+#endif
 
             break;
         case DTYPE_String:

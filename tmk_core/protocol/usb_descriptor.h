@@ -295,3 +295,27 @@ enum usb_endpoints {
 #define DIGITIZER_EPSIZE 8
 
 uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const uint16_t wLength, const void** const DescriptorAddress);
+
+// Descriptor types that LUFA doesn't define
+enum USB_DescriptorTypes_tmk_t {
+    DTYPE_Bos              = 0x0F, /**< Binary object store descriptor. */
+    DTYPE_DeviceCapability = 0x10, /**< Device capability descriptor. */
+};
+
+// USB 2.0 Extension device capability descriptor
+typedef struct {
+    USB_Descriptor_Header_t Header;
+
+    uint8_t DevCapabilityType;
+    uint8_t Bytes[4];
+} ATTR_PACKED USB_Descriptor_Capability_Usb20Ext_t;
+
+// BOS descriptor carrying a single USB 2.0 Extension capability
+typedef struct {
+    USB_Descriptor_Header_t Header;
+
+    uint16_t TotalLength;   /**< Length of this descriptor and all its sub descriptors. */
+    uint8_t  NumDeviceCaps; /**< The number of separate device capability descriptors in the BOS. */
+
+    USB_Descriptor_Capability_Usb20Ext_t Usb20ExtensionDevCap;
+} ATTR_PACKED USB_Descriptor_Bos_t;
