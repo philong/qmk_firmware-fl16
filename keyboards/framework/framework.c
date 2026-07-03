@@ -200,8 +200,6 @@ bool handle_bios_hotkeys(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-  process_record_user(keycode, record);
-
   os_variant_t os = detected_host_os();
   set_bios_mode(true);
 #if defined(OS_DETECTION_RGB_DEBUG) && defined(RGB_MATRIX_ENABLE)
@@ -256,6 +254,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   }
 
   if (!handle_bios_hotkeys(keycode, record)) {
+    return false;
+  }
+
+  if (!process_record_user(keycode, record)) {
     return false;
   }
 
