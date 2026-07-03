@@ -50,7 +50,7 @@
 #    include "os_detection.h"
 #endif
 
-#if defined(SERIAL_NUMBER) || (defined(SERIAL_NUMBER_USE_HARDWARE_ID) && SERIAL_NUMBER_USE_HARDWARE_ID == TRUE)
+#if defined(SERIAL_NUMBER) || defined(SERIAL_NUMBER_DYNAMIC) || (defined(SERIAL_NUMBER_USE_HARDWARE_ID) && SERIAL_NUMBER_USE_HARDWARE_ID == TRUE)
 
 #    define HAS_SERIAL_NUMBER
 
@@ -58,7 +58,14 @@
 #        include "hardware_id.h"
 #    endif
 
-#endif // defined(SERIAL_NUMBER) || (defined(SERIAL_NUMBER_USE_HARDWARE_ID) && SERIAL_NUMBER_USE_HARDWARE_ID == TRUE)
+#    if defined(SERIAL_NUMBER_DYNAMIC)
+// The keyboard provides the serial number string descriptor at runtime
+// (the Framework 16 reads it from a factory-programmed flash sector).
+extern void    *dyn_serial_number_string(void);
+extern uint16_t dyn_serial_number_string_len(void);
+#    endif
+
+#endif // defined(SERIAL_NUMBER) || defined(SERIAL_NUMBER_DYNAMIC) || (defined(SERIAL_NUMBER_USE_HARDWARE_ID) && SERIAL_NUMBER_USE_HARDWARE_ID == TRUE)
 
 // clang-format off
 
@@ -1236,7 +1243,11 @@ const USB_Descriptor_String_t PROGMEM ProductString = {
 
 // clang-format on
 
-#if defined(SERIAL_NUMBER)
+#if defined(SERIAL_NUMBER_DYNAMIC)
+
+// Serial number string is provided by the keyboard, see dyn_serial_number_string()
+
+#elif defined(SERIAL_NUMBER)
 // clang-format off
 const USB_Descriptor_String_t PROGMEM SerialNumberString = {
     .Header = {
@@ -1348,12 +1359,16 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const 
                     break;
 #ifdef HAS_SERIAL_NUMBER
                 case 0x03:
+#    if defined(SERIAL_NUMBER_DYNAMIC)
+                    Address = dyn_serial_number_string();
+                    Size    = dyn_serial_number_string_len();
+#    elif defined(SERIAL_NUMBER)
                     Address = (const USB_Descriptor_String_t*)&SerialNumberString;
-#    if defined(SERIAL_NUMBER)
-                    Size = pgm_read_byte(&SerialNumberString.Header.Size);
+                    Size    = pgm_read_byte(&SerialNumberString.Header.Size);
 #    else
                     set_serial_number_descriptor();
-                    Size = ((const USB_Descriptor_String_t*)SerialNumberString)->Header.Size;
+                    Address = (const USB_Descriptor_String_t*)&SerialNumberString;
+                    Size    = ((const USB_Descriptor_String_t*)SerialNumberString)->Header.Size;
 #    endif
 
                     break;

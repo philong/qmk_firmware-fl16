@@ -7,7 +7,7 @@
 #include "usb_descriptor_common.h"
 
 // Prefix string literal with L for descriptors
-#ifdef SERIAL_NUMBER
+#ifdef SERIAL_NUMBER_DYNAMIC
 USB_Descriptor_String_t PROGMEM SerialNumberString = {
     .Header = {
         .Size                   = sizeof(FALLBACK_SERIAL_NUMBER),
