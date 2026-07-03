@@ -1,12 +1,13 @@
 // Copyright 2026 Phi-Long Do
 // SPDX-License-Identifier: GPL-2.0-or-later
 //
-// Home row mods keymap, ported from a kanata home-row-mod-advanced config.
-// Kanata's per-hand early-tap key lists are replaced by Chordal Hold +
-// Permissive Hold, and its typing-streak "nomods" layer by Flow Tap.
+// GACS-style home-row-mods keymap with nav/numbers and fn/symbols layers
+//
 
 #include QMK_KEYBOARD_H
 #include "framework.h"
+
+#include "keymap_colemak.h"
 
 enum _layers {
   _BASE,
@@ -222,6 +223,38 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     'L', 'L', 'L', 'L',           '*',           'R', 'R', 'R', 'R', 'R', 'R'
 );
 
+// Colemak layout: letters are identified by
+// what the host maps the scancode to, not the QWERTY legend: KC_SCLN is the
+// letter O and KC_P is ';' (CM_* aliases from keymap_colemak.h).
+static bool is_alpha(uint16_t keycode) {
+    return (KC_A <= keycode && keycode <= KC_O) // Exclude CM_SCLN == KC_P
+           || (keycode == CM_O)                 // Include CM_O == KC_SCLN
+           || (KC_Q <= keycode && keycode <= KC_Z);
+}
+
+// Colemak-aware Caps Word: the default handler would shift KC_P (host ';')
+// and deactivate on KC_SCLN (host 'o'). No is_flow_tap_key override is
+// needed: the default list covers every Colemak alpha and ';' already.
+bool caps_word_press_user(uint16_t keycode) {
+    // Keycodes that continue Caps Word, with shift applied.
+    if (is_alpha(keycode) || keycode == KC_MINS) {
+        add_weak_mods(MOD_BIT(KC_LSFT)); // Apply shift to next key.
+        return true;
+    }
+
+    switch (keycode) {
+        // Keycodes that continue Caps Word, without shifting.
+        case KC_1 ... KC_0:
+        case KC_BSPC:
+        case KC_DEL:
+        case KC_UNDS:
+            return true;
+
+        default:
+            return false; // Deactivate Caps Word.
+    }
+}
+
 // C+V or M+, chorded: shifted accent layer for capitals
 const uint16_t PROGMEM accent_combo_left[]  = {HM_C, LT_V, COMBO_END};
 const uint16_t PROGMEM accent_combo_right[] = {LT_M, HM_COMM, COMBO_END};
@@ -275,7 +308,115 @@ static bool process_accent(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
+// Convert 8-bit mods to the 5-bit format used in keycodes. This is lossy: if
+// left and right handed mods were mixed, they all become right handed.
+static uint8_t get_keycode_mods(uint8_t mods) {
+    return ((mods & 0xf0) ? /* set right hand bit */ 0x10 : 0)
+           // Combine right and left hand mods.
+           | (((mods >> 4) | mods) & 0xf);
+}
+
+// Combine basic keycode with mods.
+static uint16_t combine_keycode(uint16_t keycode, uint8_t mods) {
+    return (get_keycode_mods(mods) << 8) | keycode;
+}
+
+// Punctuation mod: `,` or `;` tapped before a letter acts as a oneshot mod on
+// it: ",a" -> "A" (Shift), ";a" -> AltGr+a (à on the custom French Colemak
+// host), and ";;" / ",;" / ";," -> Shift+AltGr. The punctuation is typed
+// immediately and backspaced when a letter follows within ONESHOT_TIMEOUT, so
+// it stays plain punctuation otherwise. ",," escapes to a literal ",,".
+static bool process_punctuation_mod(uint16_t keycode, keyrecord_t *record) {
+    if (!record->event.pressed) {
+        return true;
+    }
+
+    uint16_t tap_keycode;
+
+    if (IS_QK_LAYER_TAP(keycode) || IS_QK_MOD_TAP(keycode)) {
+        if (record->tap.count == 0) {
+            return true; // Key is being held.
+        }
+        tap_keycode = get_tap_keycode(keycode);
+    } else {
+        tap_keycode = keycode;
+    }
+
+    static uint8_t      comma_count  = 0;
+    static uint8_t      scln_count   = 0;
+    static uint16_t     last_keycode = KC_NO;
+    static fast_timer_t timer        = 0;
+
+    const uint8_t mods     = get_mods();
+    const uint8_t all_mods = mods | get_weak_mods() | get_oneshot_mods();
+
+    if (!all_mods && (is_alpha(tap_keycode) || tap_keycode == CM_QUOT || tap_keycode == CM_SLSH)) {
+        last_keycode = KC_NO;
+
+        const bool shifted_ralted = (comma_count == 0 && scln_count == 2) || (comma_count == 1 && scln_count == 1);
+        const bool shifted        = (comma_count == 1 && scln_count == 0) || shifted_ralted;
+        const bool ralted         = (comma_count == 0 && scln_count == 1) || shifted_ralted;
+
+        if ((!shifted && !ralted) || timer_elapsed_fast(timer) > ONESHOT_TIMEOUT) {
+            comma_count = 0;
+            scln_count  = 0;
+            return true;
+        }
+
+        for (uint8_t i = comma_count + scln_count; i > 0; --i) {
+            tap_code(KC_BSPC);
+        }
+        comma_count = 0;
+        scln_count  = 0;
+
+        if (shifted) {
+            set_oneshot_mods(get_oneshot_mods() | MOD_BIT(KC_LSFT));
+        }
+
+        if (ralted) {
+            set_oneshot_mods(get_oneshot_mods() | MOD_BIT(KC_RALT));
+        }
+
+        return true;
+    }
+
+    if (all_mods) {
+        tap_keycode = combine_keycode(tap_keycode, all_mods);
+    }
+
+    switch (tap_keycode) {
+        case CM_COMM:
+            timer = timer_read_fast();
+            ++comma_count;
+
+            // ",," cancels the pending mod and yields a literal ",,"
+            if (last_keycode == CM_COMM && comma_count == 2 && scln_count == 0) {
+                last_keycode = KC_NO;
+                comma_count  = 0;
+                scln_count   = 0;
+                tap_code(KC_COMM);
+                return false;
+            }
+            break;
+        case CM_SCLN: // ';' is scancode KC_P on the Colemak host
+            timer = timer_read_fast();
+            ++scln_count;
+            break;
+        default:
+            comma_count = 0;
+            scln_count  = 0;
+    }
+
+    last_keycode = tap_keycode;
+
+    return true;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (!process_punctuation_mod(keycode, record)) {
+        return false;
+    }
+
     switch (keycode) {
         // Make sure to keep FN Lock even after reset
         case FN_LOCK:
