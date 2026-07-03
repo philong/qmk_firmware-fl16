@@ -350,6 +350,21 @@ void host_plover_hid_send(report_plover_hid_t *report) {
 
 __attribute__((weak)) void send_plover_hid(report_plover_hid_t *report) {}
 
+void host_radio_send(bool state) {
+    /* It's a toggle button, state==true means to toggle it.
+     * !state means there's no change. */
+    if (!state) return;
+
+    report_radio_t report = {
+        .report_id = REPORT_ID_RADIO,
+        .state     = (uint8_t)state,
+    };
+
+    send_radio(&report);
+}
+
+__attribute__((weak)) void send_radio(report_radio_t *report) {}
+
 #ifdef RAW_ENABLE
 void host_raw_hid_send(uint8_t *data, uint8_t length) {
     host_driver_t *driver = host_get_active_driver();
