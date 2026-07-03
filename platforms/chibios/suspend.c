@@ -22,7 +22,8 @@ void suspend_power_down(void) {
     // on AVR, this enables the watchdog for 15ms (max), and goes to
     // SLEEP_MODE_PWR_DOWN
 
-    wait_ms(17);
+    // Keep this short so the suspend loop can keep animating the LED matrix
+    wait_ms(5);
 }
 
 /** \brief suspend wakeup condition
