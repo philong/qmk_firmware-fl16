@@ -72,6 +72,9 @@ action_t action_for_keycode(uint16_t keycode) {
         case CONSUMER_KEYCODE_RANGE:
             action.code = ACTION_USAGE_CONSUMER(KEYCODE2CONSUMER(keycode));
             break;
+        case KC_AIRPLANE_MODE:
+            action.code = ACTION_USAGE_RADIO;
+            break;
 #endif
         case MOUSE_KEYCODE_RANGE:
             action.code = ACTION_MOUSEKEY(keycode);
