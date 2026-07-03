@@ -25,20 +25,20 @@ void keyboard_pre_init_kb(void) {
     // Mark boot as done.
     // Before this, when holding down both alt keys QSPI_SS is pulled low to put
     // the RP2040 in bootloader mode during reset.
-    setPinOutput(BOOT_DONE_GPIO);
-    writePinLow(BOOT_DONE_GPIO);
+    gpio_set_pin_output(BOOT_DONE_GPIO);
+    gpio_write_pin_low(BOOT_DONE_GPIO);
 
     //// TODO: Do we ever need to disable it to save power?
-    setPinOutput(MUX_ENABLE_GPIO);
-    writePinHigh(MUX_ENABLE_GPIO);
+    gpio_set_pin_output(MUX_ENABLE_GPIO);
+    gpio_write_pin_high(MUX_ENABLE_GPIO);
 
-    setPinOutput(IS31FL3743A_ENABLE_GPIO);
+    gpio_set_pin_output(IS31FL3743A_ENABLE_GPIO);
 #if defined(RGB_MATRIX_ENABLE)
-    writePinHigh(IS31FL3743A_ENABLE_GPIO);
+    gpio_write_pin_high(IS31FL3743A_ENABLE_GPIO);
 #else
-    writePinLow(IS31FL3743A_ENABLE_GPIO);
+    gpio_write_pin_low(IS31FL3743A_ENABLE_GPIO);
 #endif
-    setPinInput(SLEEP_GPIO);
+    gpio_set_pin_input(SLEEP_GPIO);
 }
 
 /**
@@ -51,7 +51,7 @@ void suspend_power_down_kb(void) {
 
 #ifdef RGB_MATRIX_ENABLE
 #  ifndef NO_SUSPEND_POWER_DOWN
-  writePinLow(IS31FL3743A_ENABLE_GPIO);
+  gpio_write_pin_low(IS31FL3743A_ENABLE_GPIO);
 #  endif
 #endif
 }
@@ -66,7 +66,7 @@ void suspend_wakeup_init_kb(void) {
 
 #ifdef RGB_MATRIX_ENABLE
 #  ifndef NO_SUSPEND_POWER_DOWN
-    writePinHigh(IS31FL3743A_ENABLE_GPIO);
+    gpio_write_pin_high(IS31FL3743A_ENABLE_GPIO);
 #  endif
 #endif
 }
@@ -83,14 +83,14 @@ void set_bios_mode(bool val) {
     rgb_matrix_sethsv_noeeprom(0, 0xFF, 0xFF);
     rgb_matrix_mode_noeeprom(1);
 #endif
-    writePin(GP24, 1);
+    gpio_write_pin(GP24, 1);
   } else {
     // White
 #if defined(RGB_MATRIX_ENABLE)
     rgb_matrix_sethsv_noeeprom(0, 0, 0xFF);
     rgb_matrix_mode_noeeprom(1);
 #endif
-    writePin(GP24, 0);
+    gpio_write_pin(GP24, 0);
   }
 #endif
 }
@@ -269,8 +269,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     // Implement step brightness for RGB backlight
 #ifdef RGB_MATRIX_ENABLE
-    case RGB_MODE_FORWARD:
-    case RGB_MODE_REVERSE:
+    case QK_RGB_MATRIX_MODE_NEXT:
+    case QK_RGB_MATRIX_MODE_PREVIOUS:
       // Turn on if it was off
       if (!rgb_matrix_is_enabled()) {
         rgb_matrix_enable();

@@ -28,7 +28,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * 24 total
      */
     [0] = LAYOUT(
-        RGB_VAI, RGB_VAD,   RGB_MOD, RGB_RMOD,
+        RM_VALU, RM_VALD,   RM_NEXT, RM_PREV,
         TG(1),   XXXXXXX,   XXXXXXX, C(KC_A),
         KC_ENT,  XXXXXXX,   XXXXXXX, KC_DEL,
         C(KC_S), KC_A,      KC_V,    C(KC_X),
