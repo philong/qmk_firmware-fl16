@@ -183,6 +183,13 @@ void is31fl3743a_init(uint8_t index) {
     is31fl3743a_write_register(index, IS31FL3743A_FUNCTION_REG_SPREAD_SPECTRUM, (sync & 0b11) << 6);
     is31fl3743a_write_register(index, IS31FL3743A_FUNCTION_REG_CONFIGURATION, IS31FL3743A_CONFIGURATION);
 
+#ifdef IS31FL3743A_PWM_FREQUENCY
+    // Change the PWM frequency from the default 29kHz via the test-mode register
+    is31fl3743a_write_register(index, IS31FL3743A_FUNCTION_REG_TEST, 0x01);
+    is31fl3743a_write_register(index, IS31FL3743A_FUNCTION_REG_CUSTOM_PWM, IS31FL3743A_PWM_FREQUENCY);
+    is31fl3743a_write_register(index, IS31FL3743A_FUNCTION_REG_TEST, 0x00);
+#endif
+
     // Wait 10ms to ensure the device has woken up.
     wait_ms(10);
 }
