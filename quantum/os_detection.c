@@ -48,14 +48,16 @@ struct setups_data_t {
     uint8_t  cnt_02;
     uint8_t  cnt_04;
     uint8_t  cnt_ff;
+    bool     bos_requested;
     uint16_t last_wlength;
 };
 
 struct setups_data_t setups_data = {
-    .count  = 0,
-    .cnt_02 = 0,
-    .cnt_04 = 0,
-    .cnt_ff = 0,
+    .count         = 0,
+    .cnt_02        = 0,
+    .cnt_04        = 0,
+    .cnt_ff        = 0,
+    .bos_requested = false,
 };
 
 static volatile os_variant_t detected_os = OS_UNSURE;
@@ -150,8 +152,10 @@ void process_wlength(const uint16_t w_length) {
         if (setups_data.cnt_ff >= 2 && setups_data.cnt_04 >= 1) {
             guessed = OS_WINDOWS;
         } else if (setups_data.count == setups_data.cnt_ff) {
-            // Linux has 3 packets with 0xFF.
-            guessed = OS_LINUX;
+            // Linux has 3 packets with 0xFF, but pre-boot environments (UEFI/BIOS,
+            // bootloaders) show the same pattern; the BOS descriptor request, which
+            // pre-boot environments never issue, tells them apart.
+            guessed = setups_data.bos_requested ? OS_LINUX : OS_UEFI;
         } else if (setups_data.count >= 5 && setups_data.last_wlength == 0xFF && setups_data.cnt_ff >= 1 && setups_data.cnt_02 >= 2) {
             guessed = OS_MACOS;
         } else if (setups_data.count == 4 && setups_data.cnt_ff == 0 && setups_data.cnt_02 == 2) {
@@ -161,14 +165,39 @@ void process_wlength(const uint16_t w_length) {
             // This is actually PS5.
             guessed = OS_LINUX;
         } else if (setups_data.cnt_ff >= 1 && setups_data.cnt_02 == 0 && setups_data.cnt_04 == 0) {
-            // This is actually Quest 2 or Nintendo Switch.
-            guessed = OS_LINUX;
+            // This is actually Quest 2 or Nintendo Switch, but again the same
+            // 0xFF-only pattern is produced by pre-boot environments.
+            guessed = setups_data.bos_requested ? OS_LINUX : OS_UEFI;
         }
     }
 
     // only replace the guessed value if not unsure
     if (guessed != OS_UNSURE) {
         detected_os = guessed;
+    } else if (!setups_data.bos_requested && detected_os == OS_UNSURE) {
+        // Hosts advertising a BOS descriptor via bcdUSB 2.1.0 but never requesting it
+        // are almost certainly pre-boot environments (UEFI/BIOS, bootloaders).
+        detected_os = OS_UEFI;
+    }
+
+    // whatever the result, debounce
+    last_time  = timer_read_fast();
+    debouncing = true;
+}
+
+// Called from the USB stack when the host requests the BOS descriptor.
+// Pre-boot environments never do, which is how they are told apart from real OSes.
+void process_bos_request(const uint16_t w_length) {
+    (void)w_length;
+    setups_data.bos_requested = true;
+    if (detected_os == OS_UEFI) {
+        // The 0xFF-only patterns that previously led to the UEFI guess belong to
+        // Linux-family hosts; anything else becomes unsure again.
+        if (setups_data.count >= 3 && setups_data.cnt_ff >= 1 && setups_data.cnt_02 == 0 && setups_data.cnt_04 == 0) {
+            detected_os = OS_LINUX;
+        } else {
+            detected_os = OS_UNSURE;
+        }
     }
 
     // whatever the result, debounce
