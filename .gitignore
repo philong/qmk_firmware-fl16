@@ -128,3 +128,5 @@ compile_commands.json
 via*.json
 /keyboards/**/keymaps/via/*
 /keyboards/**/keymaps/vial/*
+# ... except the Framework 16 VIA layouts maintained in this fork
+!/keyboards/framework/kle/via*.json
