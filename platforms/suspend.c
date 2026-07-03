@@ -4,6 +4,13 @@
 #include "suspend.h"
 #include "matrix.h"
 
+#ifdef LED_MATRIX_ENABLE
+#    include "led_matrix.h"
+#endif
+#ifdef RGB_MATRIX_ENABLE
+#    include "rgb_matrix.h"
+#endif
+
 extern matrix_row_t matrix_previous[MATRIX_ROWS];
 static matrix_row_t wakeup_matrix[MATRIX_ROWS];
 
@@ -45,6 +52,15 @@ __attribute__((weak)) void suspend_wakeup_init_kb(void) {
  */
 bool suspend_wakeup_condition(void) {
     matrix_power_up();
+
+    // Keep animating in suspend state
+#ifdef LED_MATRIX_ENABLE
+    led_matrix_task();
+#endif
+#ifdef RGB_MATRIX_ENABLE
+    rgb_matrix_task();
+#endif
+
     matrix_scan();
     matrix_power_down();
 
