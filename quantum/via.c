@@ -28,6 +28,7 @@
 
 #include "via.h"
 
+#include "bootloader.h"
 #include "raw_hid.h"
 #include "dynamic_keymap.h"
 #include "eeconfig.h"
@@ -422,6 +423,10 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             break;
         }
 #endif
+        case id_bootloader_jump: {
+            bootloader_jump();
+            break;
+        }
         case id_dynamic_keymap_macro_get_count: {
             command_data[0] = dynamic_keymap_macro_get_count();
             break;
