@@ -49,9 +49,12 @@ stop on O), and the punctuation mod below.
 `,` or `;` tapped before a letter acts as a oneshot mod on it:
 
 - `,` then letter → capital letter (oneshot Shift)
-- `;` then letter → AltGr+letter (accented letter on the custom French
-  Colemak, e.g. `;a` → à)
-- `;;`, `,;` or `;,` then letter → Shift+AltGr+letter
+- `;` then letter → accented letter (oneshot AltGr). Grave, circumflex and
+  diaeresis letters (`;a` → à, `;f` → ê, `;y` → ï, …) are sent as the dead key
+  sequences from the accents layer instead of plain AltGr+letter, which the
+  host maps to the wrong accent (á). Letters without an entry (é, ç, …) use
+  the host's AltGr+letter mapping, which is correct for them.
+- `;;`, `,;` or `;,` then letter → Shift+AltGr+letter (capital accents)
 - `,,` → literal `,,`, cancelling the pending mod
 
 The punctuation is typed immediately and backspaced when a letter follows
