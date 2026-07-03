@@ -36,3 +36,24 @@ layer, `Caps` = Caps Word toggle.
 - **Accents** (hold V or M): French accented letters as AltGr dead key
   sequences (scancodes replayed as-is — host must use the same layout as the
   original kanata setup). Chord C+V or M+, for capital accents.
+
+## Custom French Colemak host layout
+
+The host is assumed to run a custom French Colemak layout, so scancode
+`KC_SCLN` is the letter O and `KC_P` is `;`. Character-aware features use a
+Colemak-aware `is_alpha()`: Caps Word (the default handler would shift `;` and
+stop on O), and the punctuation mod below.
+
+## Punctuation mod
+
+`,` or `;` tapped before a letter acts as a oneshot mod on it:
+
+- `,` then letter → capital letter (oneshot Shift)
+- `;` then letter → AltGr+letter (accented letter on the custom French
+  Colemak, e.g. `;a` → à)
+- `;;`, `,;` or `;,` then letter → Shift+AltGr+letter
+- `,,` → literal `,,`, cancelling the pending mod
+
+The punctuation is typed immediately and backspaced when a letter follows
+within `ONESHOT_TIMEOUT` (2 s); followed by anything else it stays plain
+punctuation.
