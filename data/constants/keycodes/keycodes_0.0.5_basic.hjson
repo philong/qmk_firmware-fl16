@@ -1,5 +1,13 @@
 {
     "keycodes": {
+        "0x00E8": {
+            "group": "radio",
+            "key": "KC_AIRPLANE_MODE",
+            "label": "Toggle Airplane Mode",
+            "aliases": [
+                "KC_AIRP"
+            ]
+        },
         "0x00CD": {
             "group": "mouse",
             "key": "QK_MOUSE_CURSOR_UP",
