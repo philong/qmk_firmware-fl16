@@ -33,6 +33,7 @@ enum custom_keycodes {
   FR_OCIR,               // ô
   FR_UGRV,               // ù
   FR_UCIR,               // û
+  FR_UDIA,               // ü (punctuation mod only, not on the _ACC layer)
 };
 
 // {dead key, letter}, indexed by keycode - FR_AGRV
@@ -48,6 +49,7 @@ static const uint16_t accent_sequences[][2] = {
     [FR_OCIR - FR_AGRV] = {RALT(KC_X), KC_SCLN},
     [FR_UGRV - FR_AGRV] = {RALT(KC_S), KC_I},
     [FR_UCIR - FR_AGRV] = {RALT(KC_X), KC_I},
+    [FR_UDIA - FR_AGRV] = {RALT(KC_G), KC_I},
 };
 
 // Home row mods
@@ -292,19 +294,79 @@ bool get_speculative_hold(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
+// The dead key must be sent unshifted, only the letter is capitalized
+static void tap_accent_sequence(uint16_t accent_keycode, bool shifted) {
+    const uint16_t dead   = accent_sequences[accent_keycode - FR_AGRV][0];
+    const uint16_t letter = accent_sequences[accent_keycode - FR_AGRV][1];
+    tap_code16(dead);
+    tap_code16(shifted ? S(letter) : letter);
+}
+
 static bool process_accent(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
-        const uint16_t dead    = accent_sequences[keycode - FR_AGRV][0];
-        const uint16_t letter  = accent_sequences[keycode - FR_AGRV][1];
-        const uint8_t  mods    = get_mods();
-        const bool     shifted = ((mods | get_oneshot_mods()) & MOD_MASK_SHIFT) != 0;
-        // The dead key must be sent unshifted, only the letter is capitalized
+        const uint8_t mods    = get_mods();
+        const bool    shifted = ((mods | get_oneshot_mods()) & MOD_MASK_SHIFT) != 0;
         del_oneshot_mods(MOD_MASK_SHIFT);
         del_mods(MOD_MASK_SHIFT);
-        tap_code16(dead);
-        tap_code16(shifted ? S(letter) : letter);
+        tap_accent_sequence(keycode, shifted);
         set_mods(mods);
     }
+    return false;
+}
+
+// Customize host Colmak layout to produce French accents by default on AltGr+letter.
+// Letters not listed (e.g. é on E, ç on C) fall through to the host's AltGr+letter mapping.
+static bool process_altgr_accent(uint16_t keycode, keyrecord_t *record) {
+    if (!record->event.pressed) {
+        return true;
+    }
+
+    uint16_t tap_keycode;
+
+    if (IS_QK_LAYER_TAP(keycode) || IS_QK_MOD_TAP(keycode)) {
+        if (record->tap.count == 0) {
+            return true; // Key is being held.
+        }
+        tap_keycode = get_tap_keycode(keycode);
+    } else {
+        tap_keycode = keycode;
+    }
+
+    const uint8_t mods     = get_mods();
+    const uint8_t all_mods = mods | get_weak_mods() | get_oneshot_mods();
+    if ((all_mods & MOD_BIT(KC_RALT)) == 0) {
+        return true;
+    }
+    const bool shifted = all_mods & MOD_MASK_SHIFT;
+
+    uint16_t accent;
+    switch (tap_keycode) {
+        // acute
+        case CM_S:    accent = FR_EACU; break; // é
+        // grave
+        case CM_A:    accent = FR_AGRV; break; // à
+        case CM_P:    accent = FR_EGRV; break; // è
+        case CM_U:    accent = FR_UGRV; break; // ù
+        // circumflex
+        case CM_Q:    accent = FR_ACIR; break; // â
+        case CM_F:    accent = FR_ECIR; break; // ê
+        case CM_I:    accent = FR_ICIR; break; // î
+        case CM_O:    accent = FR_OCIR; break; // ô
+        case CM_L:    accent = FR_UCIR; break; // û
+        // diaeresis
+        case CM_W:    accent = FR_EDIA; break; // ë
+        case CM_Y:    accent = FR_IDIA; break; // ï
+        case CM_SCLN: accent = FR_UDIA; break; // ü
+        default:
+            return true;
+    }
+
+    clear_mods();
+    clear_weak_mods();
+    clear_oneshot_mods();
+    tap_accent_sequence(accent, shifted);
+    set_mods(mods);
+
     return false;
 }
 
@@ -417,6 +479,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
+    // After the punctuation mod, so it sees the oneshot AltGr set by ";"
+    if (!process_altgr_accent(keycode, record)) {
+        return false;
+    }
+
     switch (keycode) {
         // Make sure to keep FN Lock even after reset
         case FN_LOCK:
@@ -439,7 +506,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false;
             }
             return true;
-        case FR_AGRV ... FR_UCIR:
+        case FR_AGRV ... FR_UDIA:
             return process_accent(keycode, record);
         default:
             break;
