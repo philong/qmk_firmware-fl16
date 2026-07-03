@@ -109,12 +109,29 @@ Nintendo Switch: [82, FF, 40, 40, ...]
 Quest 2: [FF, FF, FF, FE, ...]
 */
 TEST_F(OsDetectionTest, TestLinux) {
-    EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF}), OS_LINUX);
+    // Exactly 3 0xFF packets without a BOS request now reads as a pre-boot
+    // environment; real Linux hosts request the BOS descriptor (bcdUSB 2.1.0)
+    // and, on ChibiOS, send more than 3 packets.
+    EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF}), OS_UEFI);
     os_detection_task();
     assert_not_reported();
 }
 
+TEST_F(OsDetectionTest, TestLinuxAfterBosRequest) {
+    process_bos_request(0xFF);
+    EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}), OS_LINUX);
+    os_detection_task();
+    assert_not_reported();
+}
+
+TEST_F(OsDetectionTest, TestBosRequestClearsUefiGuess) {
+    EXPECT_EQ(check_sequence({0x12}), OS_UEFI);
+    process_bos_request(0xFF);
+    EXPECT_EQ(detected_host_os(), OS_UNSURE);
+}
+
 TEST_F(OsDetectionTest, TestChibiosLinux) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}), OS_LINUX);
     os_detection_task();
     assert_not_reported();
@@ -260,36 +277,42 @@ TEST_F(OsDetectionTest, TestVusbPs5) {
 }
 
 TEST_F(OsDetectionTest, TestChibiosNintendoSwitch) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0x82, 0xFF, 0x40, 0x40, 0xFF, 0x40, 0x40, 0xFF, 0x40, 0x40, 0xFF, 0x40, 0x40, 0xFF, 0x40, 0x40}), OS_LINUX);
     os_detection_task();
     assert_not_reported();
 }
 
 TEST_F(OsDetectionTest, TestLufaNintendoSwitch) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0x82, 0xFF, 0x40, 0x40, 0xFF, 0x40, 0x40}), OS_LINUX);
     os_detection_task();
     assert_not_reported();
 }
 
 TEST_F(OsDetectionTest, TestVusbNintendoSwitch) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0x82, 0xFF, 0x40, 0x40}), OS_LINUX);
     os_detection_task();
     assert_not_reported();
 }
 
 TEST_F(OsDetectionTest, TestChibiosQuest2) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFE, 0xFF, 0xFE, 0xFF, 0xFE, 0xFF}), OS_LINUX);
     os_detection_task();
     assert_not_reported();
 }
 
 TEST_F(OsDetectionTest, TestVusbQuest2) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF, 0xFE}), OS_LINUX);
     os_detection_task();
     assert_not_reported();
 }
 
 TEST_F(OsDetectionTest, TestDoNotReportIfUsbUnstable) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF, 0xFE}), OS_LINUX);
     os_detection_task();
     assert_not_reported();
@@ -303,6 +326,7 @@ TEST_F(OsDetectionTest, TestDoNotReportIfUsbUnstable) {
 static struct usb_device_state usb_device_state_configured = {.configure_state = USB_DEVICE_STATE_CONFIGURED};
 
 TEST_F(OsDetectionTest, TestReportAfterDebounce) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF, 0xFE}), OS_LINUX);
     os_detection_notify_usb_device_state_change(usb_device_state_configured);
     os_detection_task();
@@ -366,7 +390,8 @@ TEST_F(OsDetectionTest, TestReportAfterDebounceLongWait) {
 }
 
 TEST_F(OsDetectionTest, TestReportUnsure) {
-    EXPECT_EQ(check_sequence({0x12, 0xFF}), OS_UNSURE);
+    // without a BOS request, an inconclusive sequence is treated as pre-boot
+    EXPECT_EQ(check_sequence({0x12, 0xFF}), OS_UEFI);
     os_detection_notify_usb_device_state_change(usb_device_state_configured);
     os_detection_task();
     assert_not_reported();
@@ -374,25 +399,26 @@ TEST_F(OsDetectionTest, TestReportUnsure) {
     advance_time(1);
     os_detection_task();
     assert_not_reported();
-    EXPECT_EQ(detected_host_os(), OS_UNSURE);
+    EXPECT_EQ(detected_host_os(), OS_UEFI);
 
     // advancing the timer alone must not cause a report
     advance_time(OS_DETECTION_DEBOUNCE - 1);
     assert_not_reported();
-    EXPECT_EQ(detected_host_os(), OS_UNSURE);
+    EXPECT_EQ(detected_host_os(), OS_UEFI);
     // the task will cause a report
     os_detection_task();
-    assert_reported(OS_UNSURE);
-    EXPECT_EQ(detected_host_os(), OS_UNSURE);
+    assert_reported(OS_UEFI);
+    EXPECT_EQ(detected_host_os(), OS_UEFI);
 
     // check that it remains the same after a long time
     advance_time(OS_DETECTION_DEBOUNCE * 10);
     os_detection_task();
-    assert_reported(OS_UNSURE);
-    EXPECT_EQ(detected_host_os(), OS_UNSURE);
+    assert_reported(OS_UEFI);
+    EXPECT_EQ(detected_host_os(), OS_UEFI);
 }
 
 TEST_F(OsDetectionTest, TestDoNotReportIntermediateResults) {
+    process_bos_request(0xFF);
     EXPECT_EQ(check_sequence({0x12, 0xFF}), OS_UNSURE);
     os_detection_notify_usb_device_state_change(usb_device_state_configured);
     os_detection_task();
@@ -437,6 +463,7 @@ TEST_F(OsDetectionTest, TestDoNotReportIntermediateResults) {
 }
 
 TEST_F(OsDetectionTest, TestDoNotGoBackToUnsure) {
+    process_bos_request(0xFF);
     // 0x02 would cause it to go back to Unsure, so check that it does not
     EXPECT_EQ(check_sequence({0xFF, 0xFF, 0xFF, 0xFE, 0x02}), OS_LINUX);
     os_detection_task();
