@@ -9,7 +9,7 @@
 #if defined(RGB_MATRIX_ENABLE)
 #include "rgb_matrix.h"
 #endif
-#ifdef SERIAL_NUMBER
+#ifdef SERIAL_NUMBER_DYNAMIC
 #include "dyn_serial.h"
 #endif
 
@@ -58,7 +58,7 @@ void handle_factory_command(uint8_t *data) {
             print("Reading Device serial number\n");
 
 
-#ifdef SERIAL_NUMBER
+#ifdef SERIAL_NUMBER_DYNAMIC
             uprintf("Serial number: %s\n", ascii_serialnum);
 #else
             uprintf("Serial number unavailable\n");
