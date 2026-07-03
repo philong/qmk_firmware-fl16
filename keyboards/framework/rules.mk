@@ -1,7 +1,3 @@
-# VIA support uses raw HID, don't need to enable it extra.
-# Only when disabling VIA but still wanting to use RAW, need to enable it here.
-VIA_ENABLE = yes
-RAW_ENABLE = no
 
 # Enabled in info.json
 # EXTRAKEY_ENABLE = yes          # Audio control and System control
@@ -21,6 +17,5 @@ SRC += matrix.c analog.c
 
 SRC += dyn_serial.c factory.c
 
-DEFAULT_FOLDER = framework/ansi
 
 OPT_DEFS += -DCORTEX_ENABLE_WFI_IDLE=TRUE
