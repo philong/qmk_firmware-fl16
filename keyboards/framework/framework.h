@@ -5,15 +5,7 @@
 
 #include "quantum.h"
 
-#if KEYBOARD_framework_ansi
-    #include "ansi.h"
-#elif KEYBOARD_framework_copilot
-    #include "copilot.h"
-#elif KEYBOARD_framework_iso
-    #include "iso.h"
-#elif KEYBOARD_framework_jis
-    #include "jis.h"
-#elif KEYBOARD_framework_numpad
+#if KEYBOARD_framework_numpad
     #include "numpad.h"
 #elif KEYBOARD_framework_macropad
     #include "macropad.h"
