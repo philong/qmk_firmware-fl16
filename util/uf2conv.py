@@ -118,7 +118,7 @@ def convert_to_carray(file_content):
     outp += "\n};\n"
     return bytes(outp, "utf-8")
 
-def convert_to_uf2(file_content):
+def convert_to_uf2(file_content, blocks_reserved=0, blocks_offset=0):
     global familyid
     datapadding = b""
     while len(datapadding) < 512 - 256 - 32 - 4:
@@ -133,7 +133,7 @@ def convert_to_uf2(file_content):
             flags |= 0x2000
         hd = struct.pack(b"<IIIIIIII",
             UF2_MAGIC_START0, UF2_MAGIC_START1,
-            flags, ptr + appstartaddr, 256, blockno, numblocks, familyid)
+            flags, ptr + appstartaddr, 256, blockno + blocks_offset, blocks_offset + blocks_reserved + numblocks, familyid)
         while len(chunk) < 256:
             chunk += b"\x00"
         block = hd + chunk + datapadding + struct.pack(b"<I", UF2_MAGIC_END)
@@ -146,7 +146,7 @@ class Block:
         self.addr = addr
         self.bytes = bytearray([default_data] * 256)
 
-    def encode(self, blockno, numblocks):
+    def encode(self, blockno, numblocks, blocks_reserved=0, blocks_offset=0):
         global familyid
         flags = 0x0
         if familyid:
@@ -155,7 +155,7 @@ class Block:
             flags |= 0x8000
         hd = struct.pack("<IIIIIIII",
             UF2_MAGIC_START0, UF2_MAGIC_START1,
-            flags, self.addr, 256, blockno, numblocks, familyid)
+            flags, self.addr, 256, blockno + blocks_offset, blocks_offset + blocks_reserved + numblocks, familyid)
         hd += self.bytes[0:256]
         if devicetype:
             hd += bytearray(b'\x08\x29\xa7\xc8')
@@ -165,7 +165,7 @@ class Block:
         hd += struct.pack("<I", UF2_MAGIC_END)
         return hd
 
-def convert_from_hex_to_uf2(buf):
+def convert_from_hex_to_uf2(buf, blocks_reserved=0, blocks_offset=0):
     global appstartaddr
     appstartaddr = None
     upper = 0
@@ -201,7 +201,7 @@ def convert_from_hex_to_uf2(buf):
     numblocks = len(blocks)
     resfile = b""
     for i in range(0, numblocks):
-        resfile += blocks[i].encode(i, numblocks)
+        resfile += blocks[i].encode(i, numblocks, blocks_reserved, blocks_offset)
     return resfile
 
 def to_str(b):
@@ -289,6 +289,12 @@ def main():
     parser.add_argument('-f', '--family', dest='family', type=str,
                         default="0x0",
                         help='specify familyID - number or name (default: 0x0)')
+    parser.add_argument('--blocks-offset', dest='blocks_offset', type=str,
+                        default="0x0",
+                        help='offset (in 512-byte blocks) of this image inside the final UF2')
+    parser.add_argument('--blocks-reserved', dest='blocks_reserved', type=str,
+                        default="0x0",
+                        help='number of additional 512-byte blocks reserved after this image')
     parser.add_argument('-t' , '--device-type', dest='devicetype', type=str,
                         help='specify deviceTypeID extension tag - number')
     parser.add_argument('-o', '--output', metavar="FILE", dest='output', type=str,
@@ -309,6 +315,8 @@ def main():
                         help='display header information from UF2, do not convert')
     args = parser.parse_args()
     appstartaddr = int(args.base, 0)
+    blocks_offset = int(args.blocks_offset, 0)
+    blocks_reserved = int(args.blocks_reserved, 0)
 
     families = load_families()
 
@@ -341,12 +349,12 @@ def main():
             outbuf = ""
             convert_from_uf2(inpbuf)
         elif is_hex(inpbuf):
-            outbuf = convert_from_hex_to_uf2(inpbuf.decode("utf-8"))
+            outbuf = convert_from_hex_to_uf2(inpbuf.decode("utf-8"), blocks_reserved, blocks_offset)
         elif args.carray:
             outbuf = convert_to_carray(inpbuf)
             ext = "h"
         else:
-            outbuf = convert_to_uf2(inpbuf)
+            outbuf = convert_to_uf2(inpbuf, blocks_reserved, blocks_offset)
         if not args.deploy and not args.info:
             print("Converted to %s, output size: %d, start address: 0x%x" %
                   (ext, len(outbuf), appstartaddr))
