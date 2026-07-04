@@ -196,6 +196,10 @@ void protocol_pre_task(void) {
                 update_matrix_state_after_wakeup();
 #    endif
             }
+            /* Keep processing USB events while suspended: this loop can be
+             * entered before a queued suspend/wakeup event has been handled,
+             * and the wakeup path depends on the queue being drained. */
+            usb_event_queue_task();
         }
         /* Woken up */
     }
