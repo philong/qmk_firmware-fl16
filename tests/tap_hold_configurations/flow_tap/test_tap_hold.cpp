@@ -842,3 +842,44 @@ TEST_F(FlowTapTest, roll_release_132) {
     run_one_scan_loop();
     VERIFY_AND_CLEAR(driver);
 }
+
+// Regression test: tap-hold key at matrix position (0, 0). Tick events are
+// constructed with keypos (0, 0), so they must not be mistaken for a release
+// of a real key at that position. Previously, once Flow Tap settled the key
+// as tapped, the next tick event consumed its registered-tap entry; the real
+// release was then handled as a hold release and the tap keycode was never
+// unregistered, leaving the key stuck.
+TEST_F(FlowTapTest, tap_hold_key_at_matrix_origin) {
+    TestDriver driver;
+    InSequence s;
+    auto       mod_tap_key = KeymapKey(0, 0, 0, SFT_T(KC_B)); // at matrix (0, 0)
+    auto       regular_key = KeymapKey(0, 1, 0, KC_A);
+
+    set_keymap({mod_tap_key, regular_key});
+
+    // Tap regular key.
+    EXPECT_REPORT(driver, (KC_A));
+    EXPECT_EMPTY_REPORT(driver);
+    tap_key(regular_key);
+    VERIFY_AND_CLEAR(driver);
+
+    // Press the mod-tap key within the Flow Tap term; it settles as tap.
+    EXPECT_REPORT(driver, (KC_B));
+    mod_tap_key.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    // Idle so tick events pass through the tapping engine while held.
+    // The release must still be processed as a tap release.
+    EXPECT_EMPTY_REPORT(driver);
+    idle_for(30);
+    mod_tap_key.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    // The key taps cleanly again.
+    EXPECT_REPORT(driver, (KC_B));
+    EXPECT_EMPTY_REPORT(driver);
+    tap_key(mod_tap_key);
+    VERIFY_AND_CLEAR(driver);
+}
