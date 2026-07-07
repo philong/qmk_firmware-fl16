@@ -235,8 +235,7 @@ static bool is_alpha(uint16_t keycode) {
 }
 
 // Colemak-aware Caps Word: the default handler would shift KC_P (host ';')
-// and deactivate on KC_SCLN (host 'o'). No is_flow_tap_key override is
-// needed: the default list covers every Colemak alpha and ';' already.
+// and deactivate on KC_SCLN (host 'o').
 bool caps_word_press_user(uint16_t keycode) {
     // Keycodes that continue Caps Word, with shift applied.
     if (is_alpha(keycode) || keycode == KC_MINS) {
@@ -256,6 +255,109 @@ bool caps_word_press_user(uint16_t keycode) {
             return false; // Deactivate Caps Word.
     }
 }
+
+#ifdef FLOW_TAP_TERM
+    bool is_flow_tap_key(uint16_t keycode) {
+        if ((get_mods() & (MOD_MASK_CG | MOD_BIT_LALT)) != 0) {
+            return false; // Disable Flow Tap on hotkeys.
+        }
+
+        const uint16_t tap_keycode = get_tap_keycode(keycode);
+
+        if (is_alpha(tap_keycode)) {
+            return true;
+        }
+
+        switch (tap_keycode) {
+            // case KC_SPC:
+            case CM_DOT:
+            case CM_COMM:
+            case CM_SCLN:
+            case CM_SLSH:
+                return true;
+        }
+
+        return false;
+    }
+
+    uint16_t get_flow_tap_term(
+        uint16_t keycode, keyrecord_t* record, uint16_t prev_keycode) {
+
+        const uint16_t tap_keycode = get_tap_keycode(keycode);
+
+        // home-row-mods
+        switch (tap_keycode) {
+            case CM_A:
+            case CM_R:
+            case CM_S:
+            case CM_T:
+            case CM_N:
+            case CM_E:
+            case CM_I:
+            case CM_O:
+                return 0;  // Disable filter for these keys.
+        }
+
+        // AltGr producing accented characters
+        switch (prev_keycode) {
+            case LT_V:
+                switch (tap_keycode) {
+                    case CM_E:
+                    case CM_I:
+                    case CM_O:
+                    case CM_L:
+                    case CM_U:
+                    case CM_Y:
+                    case CM_QUOT:
+                        return 0;
+                }
+                break;
+            case LT_M:
+                switch (tap_keycode) {
+                    case CM_A:
+                    case CM_Q:
+                    case CM_W:
+                    case CM_F:
+                    case CM_P:
+                    case CM_Z:
+                    case CM_C:
+                    case CM_V:
+                    case CM_COMM:
+                        return 0;
+                }
+                break;
+            case HM_C:
+                if (tap_keycode == CM_V || tap_keycode == CM_X) {
+                    return 0;
+                }
+                break;
+            case HM_COMM:
+                if (tap_keycode == CM_M || tap_keycode == CM_DOT) {
+                    return 0;
+                }
+                break;
+        }
+
+        if (is_flow_tap_key(keycode) && is_flow_tap_key(prev_keycode)) {
+            return FLOW_TAP_TERM;
+        }
+
+        return 0;  // Disable Tap Flow.
+    }
+#endif
+
+#ifdef CHORDAL_HOLD
+    bool get_chordal_hold(
+        uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
+        uint16_t other_keycode, keyrecord_t* other_record) {
+
+        // LGui+L screen lock protection: force HM_A to tap when CM_L is pressed
+        if (tap_hold_keycode == HM_A && get_tap_keycode(other_keycode) == CM_L) {
+            return false;
+        }
+        return get_chordal_hold_default(tap_hold_record, other_record);
+    }
+#endif
 
 // C+V or M+, chorded: shifted accent layer for capitals
 const uint16_t PROGMEM accent_combo_left[]  = {HM_C, LT_V, COMBO_END};
