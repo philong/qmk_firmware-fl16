@@ -8,7 +8,7 @@
 #define TAPPING_TERM_PER_KEY
 #define PERMISSIVE_HOLD
 #define CHORDAL_HOLD
-#define FLOW_TAP_TERM 150
+#define FLOW_TAP_TERM 100
 #define SPECULATIVE_HOLD
 
 // No tap auto-repeat on tap-hold keys, except space (see get_quick_tap_term)
