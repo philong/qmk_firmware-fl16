@@ -10,7 +10,8 @@
         "console": true,
         "nkro": true,
         "audio": false,
-        "rgb_matrix": true
+        "rgb_matrix": true,
+        "backlight": true
     },
     "processor": "RP2040",
     "url": "https://fr.mw/FRAKDKEN",
