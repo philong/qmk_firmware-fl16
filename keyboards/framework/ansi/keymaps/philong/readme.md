@@ -18,11 +18,12 @@ layer, `Caps` = Caps Word toggle.
   chords settle as taps (replaces kanata's per-hand early-tap key lists).
   Layer-tap keys (G, H, V, M) and Space have `'*'` handedness so their layers
   work with same-hand keys.
-- `FLOW_TAP_TERM 150`: holds disabled during fast typing (replaces kanata's
+- `FLOW_TAP_TERM 100`: holds disabled during fast typing (replaces kanata's
   "nomods" typing-streak layer).
 - `SPECULATIVE_HOLD` on `D` (Shift) and `F` (Ctrl) only: modifier applies
   instantly on key down, e.g. for Shift+Click.
-- `TAPPING_TERM 200` (400 on `A` to avoid accidental GUI), `QUICK_TAP_TERM 0`
+- `TAPPING_TERM 200` (400 on `A` and `;` to avoid accidental GUI),
+  `QUICK_TAP_TERM 0`
   (150 on Space so tap-then-hold still auto-repeats space).
 
 ## Layers
