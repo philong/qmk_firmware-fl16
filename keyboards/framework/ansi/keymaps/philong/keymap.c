@@ -370,6 +370,13 @@ combo_t key_combos[] = {
     COMBO(accent_combo_right, LM(_ACC, MOD_LSFT)),
 };
 
+// The combos' LM() output is hold-only: fired on a fast roll (e.g. "m,"
+// while typing), the keys would be eaten with no output. Require holding
+// the chord for COMBO_HOLD_TERM so quick rolls pass through as taps.
+bool get_combo_must_hold(uint16_t combo_index, combo_t *combo) {
+    return true;
+}
+
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         // Slower pinkies, avoid accidental GUI
