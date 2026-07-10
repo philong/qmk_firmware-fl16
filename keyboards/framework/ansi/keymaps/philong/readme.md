@@ -35,7 +35,8 @@ layer, `Caps` = Caps Word toggle.
   Escape (Space).
 - **Accents** (hold V or M): French accented letters as AltGr dead key
   sequences (scancodes replayed as-is — host must use the same layout as the
-  original kanata setup). Chord C+V or M+, for capital accents.
+  original kanata setup). Chord C+V or M+, (held ≥100 ms) for capital
+  accents; quicker rolls pass through as normal taps.
 
 ## Custom French Colemak host layout
 
