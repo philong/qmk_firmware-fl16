@@ -245,6 +245,9 @@ bool caps_word_press_user(uint16_t keycode) {
 
     switch (keycode) {
         // Keycodes that continue Caps Word, without shifting.
+        // Accents handle capitalization themselves (see process_accent);
+        // the dead key must stay unshifted, so no weak shift here.
+        case FR_AGRV ... FR_UDIA:
         case KC_1 ... KC_0:
         case KC_BSPC:
         case KC_DEL:
@@ -407,7 +410,7 @@ static void tap_accent_sequence(uint16_t accent_keycode, bool shifted) {
 static bool process_accent(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
         const uint8_t mods    = get_mods();
-        const bool    shifted = ((mods | get_oneshot_mods()) & MOD_MASK_SHIFT) != 0;
+        const bool    shifted = ((mods | get_oneshot_mods()) & MOD_MASK_SHIFT) != 0 || is_caps_word_on();
         del_oneshot_mods(MOD_MASK_SHIFT);
         del_mods(MOD_MASK_SHIFT);
         tap_accent_sequence(keycode, shifted);
