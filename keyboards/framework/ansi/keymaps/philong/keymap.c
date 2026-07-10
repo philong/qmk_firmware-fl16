@@ -114,7 +114,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         FN_LOCK, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_INS,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, RM_TOGG, RM_NEXT, RM_HUEU, RM_SATU, RM_SPDU, RM_VALU, _______, _______, KC_PAUS, _______, _______, _______,
-        _______, _______, _______, RM_PREV,RM_HUED, RM_SATD, RM_SPDD, RM_VALD, KC_SCRL, _______, _______, _______,          _______,
+        _______, _______, _______, RM_PREV, RM_HUED, RM_SATD, RM_SPDD, RM_VALD, KC_SCRL, _______, _______, _______,          _______,
         _______,          _______, _______, BL_BRTG, _______, KC_BRK,  _______, _______, _______, _______, _______,          _______,
         _______, _______, _______, _______,          BL_STEP,                   _______, _______, KC_HOME, KC_PGUP, KC_PGDN, KC_END
     ),
@@ -133,7 +133,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         FN_LOCK, KC_MUTE, KC_VOLD, KC_VOLU, KC_MPRV, KC_MPLY, KC_MNXT, KC_BRID, KC_BRIU, KC_SCRN, KC_AIRP, KC_PSCR, KC_MSEL,  KC_INS,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, RM_TOGG, RM_NEXT, RM_HUEU, RM_SATU, RM_SPDU, RM_VALU, _______, _______, KC_PAUS, _______, _______, _______,
-        _______, _______, _______, RM_PREV,RM_HUED, RM_SATD, RM_SPDD, RM_VALD, KC_SCRL, _______, _______, _______,          _______,
+        _______, _______, _______, RM_PREV, RM_HUED, RM_SATD, RM_SPDD, RM_VALD, KC_SCRL, _______, _______, _______,          _______,
         _______,          _______, _______, BL_BRTG, _______, KC_BRK,  _______, _______, _______, _______, _______,          _______,
         _______, _______, _______, _______,          BL_STEP,                   _______, _______, KC_HOME, KC_PGUP, KC_PGDN, KC_END
     ),
@@ -301,28 +301,22 @@ bool caps_word_press_user(uint16_t keycode) {
                 return 0;  // Disable filter for these keys.
         }
 
-        // AltGr producing accented characters
+        // Don't force a tap on the keys typed right after an accent layer
+        // key, so the layers stay reachable at typing speed. Only the
+        // accent-layer letters that are tap-hold keys on base need listing;
+        // plain keys never reach this hook.
         switch (prev_keycode) {
             case LT_V:
                 switch (tap_keycode) {
                     case CM_E:
                     case CM_I:
                     case CM_O:
-                    case CM_L:
-                    case CM_U:
-                    case CM_Y:
-                    case CM_QUOT:
                         return 0;
                 }
                 break;
             case LT_M:
                 switch (tap_keycode) {
                     case CM_A:
-                    case CM_Q:
-                    case CM_W:
-                    case CM_F:
-                    case CM_P:
-                    case CM_Z:
                     case CM_C:
                     case CM_V:
                     case CM_COMM:
@@ -330,12 +324,12 @@ bool caps_word_press_user(uint16_t keycode) {
                 }
                 break;
             case HM_C:
-                if (tap_keycode == CM_V || tap_keycode == CM_X) {
+                if (tap_keycode == CM_V) {
                     return 0;
                 }
                 break;
             case HM_COMM:
-                if (tap_keycode == CM_M || tap_keycode == CM_DOT) {
+                if (tap_keycode == CM_M) {
                     return 0;
                 }
                 break;
