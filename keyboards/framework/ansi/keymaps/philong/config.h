@@ -15,7 +15,7 @@
 #define QUICK_TAP_TERM 0
 #define QUICK_TAP_TERM_PER_KEY
 
-#define CAPS_WORD_IDLE_TIMEOUT 2000
+#define CAPS_WORD_IDLE_TIMEOUT 5000
 
 // Oneshot mods set by the punctuation mod expire if unused
 #define ONESHOT_TIMEOUT 2000
