@@ -19,3 +19,7 @@
 
 // Oneshot mods set by the punctuation mod expire if unused
 #define ONESHOT_TIMEOUT 2000
+
+// Capital-accent combos are hold-only (see get_combo_must_hold)
+#define COMBO_MUST_HOLD_PER_COMBO
+#define COMBO_HOLD_TERM 100
