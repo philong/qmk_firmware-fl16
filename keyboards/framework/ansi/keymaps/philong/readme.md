@@ -9,15 +9,15 @@ based config. Layers 0–3 match the default keymap (media F-row, Fn lock).
 |-----|-----|-------|------|---------|----------|------|-------|-----|-----|
 | GUI | Alt | Shift | Ctrl | Sym lyr | SymA lyr | Ctrl | Shift | Alt | GUI |
 
-Plus: `C`/`,` = extra Shift, `V`/`M` = accents layer, `Space` = nav/numbers
+Plus: `C`/`,` = extra Shift, `V`/`M` = AltGr (accents), `Space` = nav/numbers
 layer, `Caps` = Caps Word toggle.
 
 ## Tap-hold behavior ([docs/tap_hold.md](../../../../../docs/tap_hold.md))
 
 - `PERMISSIVE_HOLD` + `CHORDAL_HOLD`: holds settle on nested taps, same-hand
   chords settle as taps (replaces kanata's per-hand early-tap key lists).
-  Layer-tap keys (G, H, V, M) and Space have `'*'` handedness so their layers
-  work with same-hand keys.
+  Layer-tap keys (G, H, Space) and AltGr mod-taps (V, M) have `'*'`
+  handedness so their holds work with same-hand keys.
 - `FLOW_TAP_TERM 100`: holds disabled during fast typing (replaces kanata's
   "nomods" typing-streak layer).
 - `SPECULATIVE_HOLD` on `D` (Shift) and `F` (Ctrl) only: modifier applies
@@ -34,10 +34,15 @@ layer, `Caps` = Caps Word toggle.
 - **Symbols** (hold G / hold H): F1–F12 on the left, shifted-number symbols on
   the right, `[`/`]` on tap/hold of `;`. The H variant adds Delete (Caps) and
   Escape (Space).
-- **Accents** (hold V or M): French accented letters as AltGr dead key
-  sequences (scancodes replayed as-is — host must use the same layout as the
-  original kanata setup). Chord C+V or M+, (held ≥100 ms) for capital
-  accents; quicker rolls pass through as normal taps.
+
+## AltGr accents
+
+`V` and `M` are AltGr mod-taps. AltGr+letter for grave, circumflex and
+diaeresis letters is intercepted and sent as dead key sequences (scancodes
+replayed as-is — host must use the same layout as the original kanata setup);
+letters without an entry (é, ç, …) use the host's AltGr+letter mapping
+directly. Hold Shift (home-row, `C` or `,`) together with `V`/`M` for capital
+accents — plain modifier stacking.
 
 ## Custom French Colemak host layout
 
@@ -52,10 +57,10 @@ stop on O), and the punctuation mod below.
 
 - `,` then letter → capital letter (oneshot Shift)
 - `;` then letter → accented letter (oneshot AltGr). Grave, circumflex and
-  diaeresis letters (`;a` → à, `;f` → ê, `;y` → ï, …) are sent as the dead key
-  sequences from the accents layer instead of plain AltGr+letter, which the
-  host maps to the wrong accent (á). Letters without an entry (é, ç, …) use
-  the host's AltGr+letter mapping, which is correct for them.
+  diaeresis letters (`;a` → à, `;f` → ê, `;y` → ï, …) are sent as dead key
+  sequences instead of plain AltGr+letter, which the host maps to the wrong
+  accent (á). Letters without an entry (é, ç, …) use the host's AltGr+letter
+  mapping, which is correct for them.
 - `;;`, `,;` or `;,` then letter → Shift+AltGr+letter (capital accents)
 - `,,` → literal `,,`, cancelling the pending mod
 
