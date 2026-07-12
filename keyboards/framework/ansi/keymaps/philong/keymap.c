@@ -17,7 +17,6 @@ enum _layers {
   _NAV,   // Space held: navigation + numbers
   _SYM,   // G held: F-keys + shifted symbols
   _SYMA,  // H held: same as _SYM but with Del/Esc
-  _ACC,   // V or M held: French accents (custom Colemak)
 };
 
 // Accented characters, sent as AltGr dead key + letter scancode sequences.
@@ -33,7 +32,7 @@ enum custom_keycodes {
   FR_OCIR,               // ô
   FR_UGRV,               // ù
   FR_UCIR,               // û
-  FR_UDIA,               // ü (punctuation mod only, not on the _ACC layer)
+  FR_UDIA,               // ü
 };
 
 // {dead key, letter}, indexed by keycode - FR_AGRV
@@ -67,9 +66,10 @@ static const uint16_t accent_sequences[][2] = {
 // Layer taps
 #define LT_G    LT(_SYM, KC_G)
 #define LT_H    LT(_SYMA, KC_H)
-#define LT_V    LT(_ACC, KC_V)
-#define LT_M    LT(_ACC, KC_M)
 #define LT_SPC  LT(_NAV, KC_SPC)
+// AltGr mod-taps: French accents (see process_altgr_accent)
+#define AG_V    RALT_T(KC_V)
+#define AG_M    RALT_T(KC_M)
 // Mod-taps on the _NAV number cluster
 #define NM_1    RALT_T(KC_1)
 #define NM_4    RCTL_T(KC_4)
@@ -96,7 +96,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      *         ├─────┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴────┤
      * 13 keys │CapsWd│A/⊞│S/⎇│D/⇧│F/^│G/L5│H/L6│J/^│K/⇧│L/⎇│;/⊞│ ' │Enter│
      *         ├──────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴───────┤
-     * 12 keys │ Shift  │ Z │ X │C/⇧│V/L7│ B │ N │M/L7│,/⇧│ . │ / │ Shift │
+     * 12 keys │ Shift  │ Z │ X │C/⇧│V/⎇g│ B │ N │M/⎇g│,/⇧│ . │ / │ Shift │
      *         ├────┬───┼───┼───┼───┴───┴───┴───┴───┼───┼───┼───┴┬───┬────┤
      * 11 keys │Ctrl│FN │GUI│Alt│      Space/L4     │Alt│Ctl│ ←  │↑ ↓│  → │
      *         └────┴───┴───┴───┴───────────────────┴───┴───┴────┴───┴────┘
@@ -106,7 +106,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS, KC_EQL,  KC_BSPC,
         KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSLS,
         CW_TOGG, HM_A,    HM_S,    HM_D,    HM_F,    LT_G,    LT_H,    HM_J,    HM_K,    HM_L,    HM_SCLN, KC_QUOT,          KC_ENT,
-        KC_LSFT,          KC_Z,    KC_X,    HM_C,    LT_V,    KC_B,    KC_N,    LT_M,    HM_COMM, KC_DOT,  KC_SLSH,          KC_RSFT,
+        KC_LSFT,          KC_Z,    KC_X,    HM_C,    AG_V,    KC_B,    KC_N,    AG_M,    HM_COMM, KC_DOT,  KC_SLSH,          KC_RSFT,
         KC_LCTL, MO(_FN), KC_LGUI, KC_LALT,          LT_SPC,                    KC_RALT, KC_RCTL, KC_LEFT,   KC_UP, KC_DOWN, KC_RGHT
     ),
     // Function layer (same as the default keymap)
@@ -191,31 +191,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______,          KC_PAUS, KC_F1,   KC_F2,   SM_F3,   KC_F10,  KC_RPRN, KC_EXLM, KC_AT,   KC_HASH, KC_PIPE,          _______,
         _______, _______, _______, _______,          KC_ESC,                    _______, _______, _______, _______, _______, _______
     ),
-     /*
-     * French accents (V or M held; shifted for capitals via C+V / M+, chord)
-     *         ┌ ... F-row and number row transparent ... ┐
-     *         ├─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────┤
-     * 14 keys │     │ â │ ë │ ê │ è │⎇gT│⎇gY│ ù │ û │ ï │⎇gP│   │   │    │
-     *         ├─────┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴────┤
-     * 13 keys │CapsWd│ à │⎇gS│ é │⎇gF│⎇gG│⎇gH│⎇gJ│⎇gK│ î │ ô │Ent│       │
-     *         ├──────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴───────┤
-     * 12 keys │        │⎇gZ│⎇gX│⎇gC│⎇gV│⎇gB│⎇gN│⎇gM│⎇g,│⎇g.│⎇g/│         │
-     *         ├────┬───┼───┼───┼───┴───┴───┴───┴───┼───┼───┼───┴┬───┬────┤
-     * 11 keys │    │   │   │   │    AltGr+Space    │   │   │    │   │    │
-     *         └────┴───┴───┴───┴───────────────────┴───┴───┴────┴───┴────┘
-     */
-    [_ACC] = LAYOUT(
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-        _______, FR_ACIR, FR_EDIA, FR_ECIR, FR_EGRV, RALT(KC_T), RALT(KC_Y), FR_UGRV, FR_UCIR, FR_IDIA, RALT(KC_P), _______, _______, _______,
-        CW_TOGG, FR_AGRV, RALT(KC_S), FR_EACU, RALT(KC_F), RALT(KC_G), RALT(KC_H), RALT(KC_J), RALT(KC_K), FR_ICIR, FR_OCIR, KC_ENT, _______,
-        _______,          RALT(KC_Z), RALT(KC_X), RALT(KC_C), RALT(KC_V), RALT(KC_B), RALT(KC_N), RALT(KC_M), RALT(KC_COMM), RALT(KC_DOT), RALT(KC_SLSH), _______,
-        _______, _______, _______, _______,          RALT(KC_SPC),              _______, _______, _______, _______, _______, _______
-    ),
 };
 
-// Chordal Hold handedness. The layer-tap keys (G, H, V, M) and Space are
-// exempted ('*') so their layers remain reachable with same-hand keys.
+// Chordal Hold handedness. The layer-tap keys (G, H, Space) and the AltGr
+// mod-taps (V, M) are exempted ('*') so their holds remain reachable with
+// same-hand keys.
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     'L', 'L', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
     'L', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
@@ -301,12 +281,12 @@ bool caps_word_press_user(uint16_t keycode) {
                 return 0;  // Disable filter for these keys.
         }
 
-        // Don't force a tap on the keys typed right after an accent layer
-        // key, so the layers stay reachable at typing speed. Only the
-        // accent-layer letters that are tap-hold keys on base need listing;
-        // plain keys never reach this hook.
+        // Don't force a tap on the keys typed right after an AltGr accent
+        // key, so accents stay reachable at typing speed. Only the accented
+        // letters that are tap-hold keys on base need listing; plain keys
+        // never reach this hook.
         switch (prev_keycode) {
-            case LT_V:
+            case AG_V:
                 switch (tap_keycode) {
                     case CM_E:
                     case CM_I:
@@ -314,7 +294,7 @@ bool caps_word_press_user(uint16_t keycode) {
                         return 0;
                 }
                 break;
-            case LT_M:
+            case AG_M:
                 switch (tap_keycode) {
                     case CM_A:
                     case CM_C:
@@ -355,21 +335,6 @@ bool caps_word_press_user(uint16_t keycode) {
         return get_chordal_hold_default(tap_hold_record, other_record);
     }
 #endif
-
-// C+V or M+, chorded: shifted accent layer for capitals
-const uint16_t PROGMEM accent_combo_left[]  = {HM_C, LT_V, COMBO_END};
-const uint16_t PROGMEM accent_combo_right[] = {LT_M, HM_COMM, COMBO_END};
-combo_t key_combos[] = {
-    COMBO(accent_combo_left, LM(_ACC, MOD_LSFT)),
-    COMBO(accent_combo_right, LM(_ACC, MOD_LSFT)),
-};
-
-// The combos' LM() output is hold-only: fired on a fast roll (e.g. "m,"
-// while typing), the keys would be eaten with no output. Require holding
-// the chord for COMBO_HOLD_TERM so quick rolls pass through as taps.
-bool get_combo_must_hold(uint16_t combo_index, combo_t *combo) {
-    return true;
-}
 
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
