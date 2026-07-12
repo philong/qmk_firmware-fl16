@@ -228,6 +228,10 @@ bool caps_word_press_user(uint16_t keycode) {
         // Accents handle capitalization themselves (see process_accent);
         // the dead key must stay unshifted, so no weak shift here.
         case FR_AGRV ... FR_UDIA:
+        // ',' (CM_COMM) and ';' (CM_SCLN) may be punctuation-mod prefixes of an accented letter
+        // (backspaced when a letter follows), so they must not break the word.
+        // Adding only ';' for accented letters, ',' for caps would be redundant.
+        case CM_SCLN:
         case KC_1 ... KC_0:
         case KC_BSPC:
         case KC_DEL:
@@ -408,7 +412,9 @@ static bool process_altgr_accent(uint16_t keycode, keyrecord_t *record) {
     if ((all_mods & MOD_BIT(KC_RALT)) == 0) {
         return true;
     }
-    const bool shifted = all_mods & MOD_MASK_SHIFT;
+    // Caps Word never sees this key (process_caps_word runs after
+    // process_record_user), so apply its shift here.
+    const bool shifted = (all_mods & MOD_MASK_SHIFT) != 0 || is_caps_word_on();
 
     uint16_t accent;
     switch (tap_keycode) {
