@@ -32,6 +32,10 @@
 // Enable serial number. Calls into dyn_serial_number_string* functions
 #define SERIAL_NUMBER_DYNAMIC
 
+// Expose a pico-sdk compatible reset interface so picotool and fwupd can
+// reboot the keyboard into the bootloader
+#define RP2040_RESET_INTERFACE_ENABLE
+
 #if KEYBOARD_framework_ansi
     #define LED_CAPS_LOCK_PIN GP24
 #elif KEYBOARD_framework_copilot

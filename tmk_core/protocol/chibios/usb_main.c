@@ -26,6 +26,10 @@
 #include "usb_device_state.h"
 #include "usb_descriptor.h"
 #include "usb_driver.h"
+
+#ifdef RP2040_RESET_INTERFACE_ENABLE
+#    include "bootloader.h"
+#endif
 #include "usb_types.h"
 
 #ifdef RAW_ENABLE
@@ -248,6 +252,21 @@ static void set_led_transfer_cb(USBDriver *usbp) {
 
 static bool usb_requests_hook_cb(USBDriver *usbp) {
     usb_control_request_t *setup = (usb_control_request_t *)usbp->setup;
+
+#ifdef RP2040_RESET_INTERFACE_ENABLE
+    /* Handle pico-sdk reset interface requests, sent by picotool and fwupd to
+     * reboot the device (see pico-sdk pico/usb_reset_interface.h) */
+    if ((setup->bmRequestType == (USB_RTYPE_DIR_HOST2DEV | USB_RTYPE_TYPE_CLASS | USB_RTYPE_RECIPIENT_INTERFACE)) && (setup->wIndex == RP2040_RESET_INTERFACE)) {
+        switch (setup->bRequest) {
+            case 0x01: // RESET_REQUEST_BOOTSEL
+                bootloader_jump();
+                return true;
+            case 0x02: // RESET_REQUEST_FLASH
+                mcu_reset();
+                return true;
+        }
+    }
+#endif
 
     /* Handle HID class specific requests */
     if ((setup->bmRequestType & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) == (USB_RTYPE_TYPE_CLASS | USB_RTYPE_RECIPIENT_INTERFACE)) {

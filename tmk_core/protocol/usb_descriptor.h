@@ -144,6 +144,11 @@ typedef struct {
     USB_HID_Descriptor_HID_t   Digitizer_HID;
     USB_Descriptor_Endpoint_t  Digitizer_INEndpoint;
 #endif
+
+#ifdef RP2040_RESET_INTERFACE_ENABLE
+    // pico-sdk compatible reset vendor interface (control requests only)
+    USB_Descriptor_Interface_t Reset_Interface;
+#endif
 } USB_Descriptor_Configuration_t;
 
 /*
@@ -192,6 +197,10 @@ enum usb_interfaces {
 
 #if defined(DIGITIZER_ENABLE) && !defined(DIGITIZER_SHARED_EP)
     DIGITIZER_INTERFACE,
+#endif
+
+#ifdef RP2040_RESET_INTERFACE_ENABLE
+    RP2040_RESET_INTERFACE,
 #endif
     TOTAL_INTERFACES
 };

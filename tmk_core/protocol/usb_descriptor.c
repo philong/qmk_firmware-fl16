@@ -1145,6 +1145,26 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
         .PollingIntervalMS      = USB_POLLING_INTERVAL_MS
     },
 #endif
+
+#ifdef RP2040_RESET_INTERFACE_ENABLE
+    /*
+     * pico-sdk compatible reset interface; lets picotool and fwupd reboot the
+     * device into the bootloader without physical access
+     */
+    .Reset_Interface = {
+        .Header = {
+            .Size               = sizeof(USB_Descriptor_Interface_t),
+            .Type               = DTYPE_Interface
+        },
+        .InterfaceNumber        = RP2040_RESET_INTERFACE,
+        .AlternateSetting       = 0x00,
+        .TotalEndpoints         = 0,
+        .Class                  = USB_CSCP_VendorSpecificClass,
+        .SubClass               = 0x00, // RESET_INTERFACE_SUBCLASS
+        .Protocol               = 0x01, // RESET_INTERFACE_PROTOCOL
+        .InterfaceStrIndex      = NO_DESCRIPTOR
+    },
+#endif
 };
 
 /*
