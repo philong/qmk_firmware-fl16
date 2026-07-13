@@ -319,7 +319,33 @@ typedef struct {
     uint8_t Bytes[4];
 } ATTR_PACKED USB_Descriptor_Capability_Usb20Ext_t;
 
-// BOS descriptor carrying a single USB 2.0 Extension capability
+// Platform device capability descriptor carrying one MS OS 2.0 style
+// descriptor set information block (used for both the Microsoft OS 2.0
+// descriptor and the fwupd DS20 descriptor)
+typedef struct {
+    USB_Descriptor_Header_t Header;
+
+    uint8_t DevCapabilityType;
+    uint8_t Reserved;
+    uint8_t PlatformCapabilityId[16];
+    struct {
+        uint8_t  Version[4];
+        uint16_t TotalLength; /**< Length of the descriptor set fetched with VendorCode. */
+        uint8_t  VendorCode;
+        uint8_t  AltEnumCode;
+    } ATTR_PACKED Set;
+} ATTR_PACKED USB_Descriptor_Capability_Platform_t;
+
+#ifdef FWUPD_CAP
+#    ifndef FWUPD_DS20_QUIRK
+#        error FWUPD_CAP requires FWUPD_DS20_QUIRK to be defined
+#    endif
+// Vendor code fwupd uses to fetch the DS20 descriptor set
+#    define FWUPD_DS20_VENDOR_CODE 0x2A
+#    define FWUPD_DS20_SET_LENGTH (sizeof(FWUPD_DS20_QUIRK) - 1)
+#endif
+
+// BOS descriptor carrying the device capabilities
 typedef struct {
     USB_Descriptor_Header_t Header;
 
@@ -327,4 +353,7 @@ typedef struct {
     uint8_t  NumDeviceCaps; /**< The number of separate device capability descriptors in the BOS. */
 
     USB_Descriptor_Capability_Usb20Ext_t Usb20ExtensionDevCap;
+#ifdef FWUPD_CAP
+    USB_Descriptor_Capability_Platform_t FwupdCap;
+#endif
 } ATTR_PACKED USB_Descriptor_Bos_t;

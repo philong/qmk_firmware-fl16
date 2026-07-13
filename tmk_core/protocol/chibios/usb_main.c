@@ -325,6 +325,16 @@ static bool usb_requests_hook_cb(USBDriver *usbp) {
         return true;
     }
 
+#ifdef FWUPD_CAP
+    /* Serve the fwupd DS20 descriptor set advertised in the BOS descriptor,
+     * fetched like an MS OS 2.0 descriptor set but with our own vendor code */
+    if ((setup->bmRequestType == (USB_RTYPE_DIR_DEV2HOST | USB_RTYPE_TYPE_VENDOR | USB_RTYPE_RECIPIENT_DEVICE)) && (setup->bRequest == FWUPD_DS20_VENDOR_CODE) && (setup->wValue.word == 0) && (setup->wIndex == 0x07 /* MS_OS_20_DESCRIPTOR_INDEX */)) {
+        static uint8_t _Alignas(4) fwupd_ds20_descriptor_set[] = FWUPD_DS20_QUIRK;
+        usbSetupTransfer(usbp, fwupd_ds20_descriptor_set, setup->wLength < FWUPD_DS20_SET_LENGTH ? setup->wLength : FWUPD_DS20_SET_LENGTH, NULL);
+        return true;
+    }
+#endif
+
     for (int i = 0; i < USB_ENDPOINT_IN_COUNT; i++) {
         if (usb_endpoints_in[i].usb_requests_cb != NULL) {
             if (usb_endpoints_in[i].usb_requests_cb(usbp)) {

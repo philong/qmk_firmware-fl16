@@ -559,8 +559,12 @@ const USB_Descriptor_Bos_t PROGMEM BosDescriptor = {
         .Size                   = 0x05,
         .Type                   = DTYPE_Bos
     },
-    .TotalLength                = sizeof(USB_Descriptor_Bos_t), // 0x000C
-    .NumDeviceCaps              = 0x01,
+    .TotalLength                = sizeof(USB_Descriptor_Bos_t),
+    .NumDeviceCaps              = 1
+#ifdef FWUPD_CAP
+                                  + 1
+#endif
+    ,
 
     .Usb20ExtensionDevCap       = {
         .Header = {
@@ -570,6 +574,34 @@ const USB_Descriptor_Bos_t PROGMEM BosDescriptor = {
         .DevCapabilityType      = 2, // USB 2.0 Extension
         .Bytes                  = {0x00, 0x00, 0x00, 0x00},
     },
+
+#ifdef FWUPD_CAP
+    // Tells fwupd which plugin handles this device and how, without needing a
+    // quirk file installed on the host
+    // https://fwupd.github.io/libfwupdplugin/ds20.html
+    .FwupdCap = {
+        .Header = {
+            .Size = sizeof(USB_Descriptor_Capability_Platform_t),
+            .Type = DTYPE_DeviceCapability,
+        },
+        .DevCapabilityType      = 5, // Platform
+        .Reserved               = 0,
+        // fwupd DS20 {010aec63-f574-52cd-9dda-2852550d94f0}
+        .PlatformCapabilityId   = {
+            0x63, 0xec, 0x0a, 0x01,
+            0x74, 0xf5, 0xcd, 0x52,
+            0x9d, 0xda, 0x28, 0x52,
+            0x55, 0x0d, 0x94, 0xf0
+        },
+        .Set = {
+            // rp_pico protocol supported since fwupd 2.0.2
+            .Version            = {0x02, 0x00, 0x02, 0x00},
+            .TotalLength        = FWUPD_DS20_SET_LENGTH,
+            .VendorCode         = FWUPD_DS20_VENDOR_CODE,
+            .AltEnumCode        = 0,
+        },
+    },
+#endif
 };
 
 #ifndef USB_MAX_POWER_CONSUMPTION

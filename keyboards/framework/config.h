@@ -36,6 +36,16 @@
 // reboot the keyboard into the bootloader
 #define RP2040_RESET_INTERFACE_ENABLE
 
+// Advertise a fwupd DS20 BOS capability carrying this quirk data, so fwupd
+// (>= 2.0.2) updates the keyboard via its rp_pico plugin without a quirk file
+// installed on the host
+#define FWUPD_CAP
+#define FWUPD_DS20_QUIRK        \
+    "Plugin=rp_pico\n"          \
+    "Flags=internal\n"          \
+    "Icon=input-keyboard\n"     \
+    "CounterpartGuid=BLOCK\\VEN_2E8A&DEV_0003"
+
 #if KEYBOARD_framework_ansi
     #define LED_CAPS_LOCK_PIN GP24
 #elif KEYBOARD_framework_copilot
