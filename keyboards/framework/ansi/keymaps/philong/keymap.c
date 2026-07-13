@@ -9,6 +9,13 @@
 
 #include "keymap_colemak.h"
 
+#ifdef COMBO_ENABLE
+const uint16_t PROGMEM boot_combo[] = {KC_LALT, KC_RALT, KC_ESC, KC_DEL, COMBO_END};
+combo_t key_combos[] = {
+    COMBO(boot_combo, QK_BOOT)
+};
+#endif
+
 enum _layers {
   _BASE,
   _FN,
