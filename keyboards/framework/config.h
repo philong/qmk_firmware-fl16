@@ -145,6 +145,14 @@
 
 #define IS31FL3743A_PWM_FREQUENCY IS31FL3743A_PWM_FREQUENCY_32K_HZ
 
+// Reduce electrical noise from the LED controllers: 180 degree phase delay
+// between the switch lines on the first controller only (so the two
+// controllers don't switch in unison) and spread spectrum on the PWM clock
+#define IS31FL3743A_PHASE_DELAY_1 IS31FL3743A_PHASE_DELAY_ENABLE
+#define IS31FL3743A_SPREAD_SPECTRUM IS31FL3743A_SSP_ENABLE
+#define IS31FL3743A_SPREAD_SPECTRUM_RANGE IS31FL3743A_RNG_34_PERCENT
+#define IS31FL3743A_SPREAD_SPECTRUM_CYCLE_TIME IS31FL3743A_CLT_660_US
+
 /*
  * Feature disable options
  *  These options are also useful to firmware size reduction.
