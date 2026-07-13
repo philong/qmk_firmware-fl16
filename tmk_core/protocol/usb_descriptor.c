@@ -564,6 +564,9 @@ const USB_Descriptor_Bos_t PROGMEM BosDescriptor = {
 #ifdef FWUPD_CAP
                                   + 1
 #endif
+#ifdef RESET_INTERFACE_MSOS20_CAP
+                                  + 1
+#endif
     ,
 
     .Usb20ExtensionDevCap       = {
@@ -598,6 +601,32 @@ const USB_Descriptor_Bos_t PROGMEM BosDescriptor = {
             .Version            = {0x02, 0x00, 0x02, 0x00},
             .TotalLength        = FWUPD_DS20_SET_LENGTH,
             .VendorCode         = FWUPD_DS20_VENDOR_CODE,
+            .AltEnumCode        = 0,
+        },
+    },
+#endif
+
+#ifdef RESET_INTERFACE_MSOS20_CAP
+    // Makes Windows bind WinUSB to the reset interface, so picotool and fwupd
+    // work there and Device Manager doesn't flag a driverless interface
+    .MsosCap = {
+        .Header = {
+            .Size = sizeof(USB_Descriptor_Capability_Platform_t),
+            .Type = DTYPE_DeviceCapability,
+        },
+        .DevCapabilityType      = 5, // Platform
+        .Reserved               = 0,
+        // Microsoft OS 2.0 {D8DD60DF-4589-4CC7-9CD2-659D9E648A9F}
+        .PlatformCapabilityId   = {
+            0xDF, 0x60, 0xDD, 0xD8,
+            0x89, 0x45, 0xC7, 0x4C,
+            0x9C, 0xD2, 0x65, 0x9D,
+            0x9E, 0x64, 0x8A, 0x9F
+        },
+        .Set = {
+            .Version            = {0x00, 0x00, 0x03, 0x06}, // Windows 8.1
+            .TotalLength        = RESET_INTERFACE_MSOS20_SET_LENGTH,
+            .VendorCode         = MSOS20_VENDOR_CODE,
             .AltEnumCode        = 0,
         },
     },

@@ -46,6 +46,9 @@
     "Icon=input-keyboard\n"     \
     "CounterpartGuid=BLOCK\\VEN_2E8A&DEV_0003"
 
+// Make Windows bind WinUSB to the reset interface via an MS OS 2.0 descriptor
+#define RESET_INTERFACE_MSOS20_CAP
+
 #if KEYBOARD_framework_ansi
     #define LED_CAPS_LOCK_PIN GP24
 #elif KEYBOARD_framework_copilot

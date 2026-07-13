@@ -345,6 +345,16 @@ typedef struct {
 #    define FWUPD_DS20_SET_LENGTH (sizeof(FWUPD_DS20_QUIRK) - 1)
 #endif
 
+#ifdef RESET_INTERFACE_MSOS20_CAP
+#    ifndef RP2040_RESET_INTERFACE_ENABLE
+#        error RESET_INTERFACE_MSOS20_CAP requires RP2040_RESET_INTERFACE_ENABLE
+#    endif
+// Vendor code Windows uses to fetch the MS OS 2.0 descriptor set
+#    define MSOS20_VENDOR_CODE 0x01
+// Total length of the descriptor set in usb_main.c (checked there)
+#    define RESET_INTERFACE_MSOS20_SET_LENGTH 166
+#endif
+
 // BOS descriptor carrying the device capabilities
 typedef struct {
     USB_Descriptor_Header_t Header;
@@ -355,5 +365,8 @@ typedef struct {
     USB_Descriptor_Capability_Usb20Ext_t Usb20ExtensionDevCap;
 #ifdef FWUPD_CAP
     USB_Descriptor_Capability_Platform_t FwupdCap;
+#endif
+#ifdef RESET_INTERFACE_MSOS20_CAP
+    USB_Descriptor_Capability_Platform_t MsosCap;
 #endif
 } ATTR_PACKED USB_Descriptor_Bos_t;
