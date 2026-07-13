@@ -9,15 +9,9 @@
 
 #include "keymap_colemak.h"
 
-#ifdef COMBO_ENABLE
-const uint16_t PROGMEM boot_combo[] = {KC_LALT, KC_RALT, KC_ESC, KC_DEL, COMBO_END};
-combo_t key_combos[] = {
-    COMBO(boot_combo, QK_BOOT)
-};
-#endif
-
 enum _layers {
   _BASE,
+  _GAME,  // Toggled by corner-keys combo: plain keys, no tap-holds
   _FN,
   _FN_LOCK,
   _FM,
@@ -40,7 +34,17 @@ enum custom_keycodes {
   FR_UGRV,               // ù
   FR_UCIR,               // û
   FR_UDIA,               // ü
+  TG_GAME,
 };
+
+#ifdef COMBO_ENABLE
+const uint16_t PROGMEM boot_combo[] = {KC_LALT, KC_RALT, KC_ESC, KC_DEL, COMBO_END};
+const uint16_t PROGMEM game_combo[] = {KC_LCTL, KC_RGHT, KC_ESC, KC_DEL, COMBO_END};
+combo_t key_combos[] = {
+    COMBO(boot_combo, QK_BOOT),
+    COMBO(game_combo, TG_GAME)
+};
+#endif
 
 // {dead key, letter}, indexed by keycode - FR_AGRV
 static const uint16_t accent_sequences[][2] = {
@@ -115,6 +119,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         CW_TOGG, HM_A,    HM_S,    HM_D,    HM_F,    LT_G,    LT_H,    HM_J,    HM_K,    HM_L,    HM_SCLN, KC_QUOT,          KC_ENT,
         KC_LSFT,          KC_Z,    KC_X,    HM_C,    AG_V,    KC_B,    KC_N,    AG_M,    HM_COMM, KC_DOT,  KC_SLSH,          KC_RSFT,
         KC_LCTL, MO(_FN), KC_LGUI, KC_LALT,          LT_SPC,                    KC_RALT, KC_RCTL, KC_LEFT,   KC_UP, KC_DOWN, KC_RGHT
+    ),
+    [_GAME] = LAYOUT(
+        KC_ESC,  KC_MUTE, KC_VOLD, KC_VOLU, KC_MPRV, KC_MPLY, KC_MNXT, KC_BRID, KC_BRIU, KC_SCRN, KC_AIRP, KC_PSCR, KC_MSEL, KC_DEL,
+        KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS, KC_EQL,  KC_BSPC,
+        KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSLS,
+        KC_CAPS, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,
+        KC_LSFT,          KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,          KC_RSFT,
+        KC_LCTL, MO(_FN), KC_LGUI, KC_LALT,          KC_SPC,                    KC_RALT, KC_RCTL, KC_LEFT,   KC_UP, KC_DOWN, KC_RGHT
     ),
     // Function layer (same as the default keymap)
     [_FN] = LAYOUT(
@@ -558,7 +570,40 @@ static bool process_punctuation_mod(uint16_t keycode, keyrecord_t *record) {
     return true;
 }
 
+bool process_fn_lock(uint16_t keycode, keyrecord_t *record) {
+    if (keycode != FN_LOCK) {
+        return true;
+    }
+
+    // Make sure to keep FN Lock even after reset
+    if (record->event.pressed) {
+        if (layer_state_is(_FN)) {
+            set_single_persistent_default_layer(_FN_LOCK);
+        }
+        if (layer_state_is(_FM)) {
+            set_single_persistent_default_layer(_BASE);
+        }
+    }
+
+    return false;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (keycode == TG_GAME) {
+        if (record->event.pressed) {
+            layer_invert(_GAME);
+        }
+        return false;
+    }
+
+    if (!process_fn_lock(keycode, record)) {
+        return false;
+    }
+
+    if (layer_state_is(_GAME)) {
+        return true;
+    }
+
     if (!process_punctuation_mod(keycode, record)) {
         return false;
     }
@@ -569,17 +614,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
-        // Make sure to keep FN Lock even after reset
-        case FN_LOCK:
-            if (record->event.pressed) {
-                if (layer_state_is(_FN)) {
-                    set_single_persistent_default_layer(_FN_LOCK);
-                }
-                if (layer_state_is(_FM)) {
-                    set_single_persistent_default_layer(_BASE);
-                }
-            }
-            return false;
         case BRC_LT:
             if (!record->tap.count) { // Held: send ] instead of layer 0
                 if (record->event.pressed) {
