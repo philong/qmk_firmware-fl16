@@ -212,15 +212,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 };
 
-// Chordal Hold handedness. The layer-tap keys (G, H, Space) and the AltGr
-// mod-taps (V, M) are exempted ('*') so their holds remain reachable with
-// same-hand keys.
+// Chordal Hold handedness. Space is exempted ('*') so its navigation and number
+// holds remain reachable on both sides.
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     'L', 'L', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
     'L', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
     'L', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-    'L', 'L', 'L', 'L', 'L', '*', '*', 'R', 'R', 'R', 'R', 'R',      'R',
-    'L',      'L', 'L', 'L', '*', 'L', 'R', '*', 'R', 'R', 'R',      'R',
+    'L', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', 'R',      'R',
+    'L',      'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R',      'R',
     'L', 'L', 'L', 'L',           '*',           'R', 'R', 'R', 'R', 'R', 'R'
 );
 
