@@ -16,8 +16,9 @@ layer, `Caps` = Caps Word toggle.
 
 - `PERMISSIVE_HOLD` + `CHORDAL_HOLD`: holds settle on nested taps, same-hand
   chords settle as taps (replaces kanata's per-hand early-tap key lists).
-  Layer-tap keys (G, H, Space) and AltGr mod-taps (V, M) have `'*'`
-  handedness so their holds work with same-hand keys.
+  Only `Space` has `'*'` handedness so its nav/number holds work with both
+  hands; G/H layer-taps and V/M AltGr mod-taps are symmetric, so the
+  opposite-hand activator covers same-hand keys.
 - `FLOW_TAP_TERM 100`: holds disabled during fast typing (replaces kanata's
   "nomods" typing-streak layer).
 - `SPECULATIVE_HOLD` on `D` (Shift) and `F` (Ctrl) only: modifier applies
