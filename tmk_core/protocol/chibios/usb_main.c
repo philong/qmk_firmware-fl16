@@ -528,7 +528,13 @@ void send_raw_hid(uint8_t *data, uint8_t length) {
 
 void raw_hid_task(void) {
     uint8_t buffer[RAW_EPSIZE];
-    while (receive_report(USB_ENDPOINT_OUT_RAW, buffer, sizeof(buffer))) {
+    size_t  size;
+    while ((size = usb_endpoint_out_receive_packet(&usb_endpoints_out[USB_ENDPOINT_OUT_RAW], buffer, sizeof(buffer), TIME_IMMEDIATE)) > 0) {
+        /* Tolerate hosts that send fewer than RAW_EPSIZE payload bytes
+         * (e.g. tools passing the report ID byte within a RAW_EPSIZE-sized
+         * write on Linux hidraw): zero-pad and process as a full report so
+         * the response stays report-sized. */
+        memset(buffer + size, 0, sizeof(buffer) - size);
         raw_hid_receive(buffer, sizeof(buffer));
     }
 }
