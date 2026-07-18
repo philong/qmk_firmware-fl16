@@ -339,3 +339,33 @@ bool usb_endpoint_out_receive(usb_endpoint_out_t *endpoint, uint8_t *data, size_
 
     return received == size;
 }
+
+size_t usb_endpoint_out_receive_packet(usb_endpoint_out_t *endpoint, uint8_t *data, size_t size, sysinterval_t timeout) {
+    osalDbgCheck((endpoint != NULL) && (data != NULL) && (size > 0U));
+
+    osalSysLock();
+    if (usbGetDriverStateI(endpoint->config.usbp) != USB_ACTIVE) {
+        osalSysUnlock();
+        return 0;
+    }
+
+    if (endpoint->timed_out && timeout != TIME_INFINITE) {
+        timeout = TIME_IMMEDIATE;
+    }
+    osalSysUnlock();
+
+    /* Consume exactly one buffer, i.e. one USB OUT transaction, so that
+     * packets shorter than `size` are returned with their actual length
+     * instead of being merged with the next packet or rejected. */
+    if (ibqGetFullBufferTimeout(&endpoint->ibqueue, timeout) != MSG_OK) {
+        endpoint->timed_out = true;
+        return 0;
+    }
+    endpoint->timed_out = false;
+
+    size_t received = MIN((size_t)(endpoint->ibqueue.top - endpoint->ibqueue.ptr), size);
+    memcpy(data, endpoint->ibqueue.ptr, received);
+    ibqReleaseEmptyBuffer(&endpoint->ibqueue);
+
+    return received;
+}
