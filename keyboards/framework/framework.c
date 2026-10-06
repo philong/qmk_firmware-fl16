@@ -273,6 +273,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 #ifdef RGB_MATRIX_ENABLE
     case QK_RGB_MATRIX_MODE_NEXT:
     case QK_RGB_MATRIX_MODE_PREVIOUS:
+    // Shared underglow keycodes also drive RGB matrix, VIA assigns these
+    case QK_UNDERGLOW_MODE_NEXT:
+    case QK_UNDERGLOW_MODE_PREVIOUS:
       // Turn on if it was off
       if (!rgb_matrix_is_enabled()) {
         rgb_matrix_enable();
