@@ -18,8 +18,7 @@
     "usb": {
         "device_version": "0.3.1",
         "pid": "0x0012",
-        "vid": "0x32AC",
-        "force_nkro": false
+        "vid": "0x32AC"
     },
     "backlight": {
         "pin": "GP25"
