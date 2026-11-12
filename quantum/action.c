@@ -981,6 +981,8 @@ __attribute__((weak)) void register_code(uint8_t code) {
         host_system_send(KEYCODE2SYSTEM(code));
     } else if (IS_CONSUMER_KEYCODE(code)) {
         host_consumer_send(KEYCODE2CONSUMER(code));
+    } else if (IS_RADIO_KEYCODE(code)) {
+        host_radio_send(true);
 #endif
 
     } else if (IS_MOUSE_KEYCODE(code)) {
@@ -1038,6 +1040,8 @@ __attribute__((weak)) void unregister_code(uint8_t code) {
         host_system_send(0);
     } else if (IS_CONSUMER_KEYCODE(code)) {
         host_consumer_send(0);
+    } else if (IS_RADIO_KEYCODE(code)) {
+        host_radio_send(false);
 #endif
 
     } else if (IS_MOUSE_KEYCODE(code)) {
