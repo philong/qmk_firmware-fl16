@@ -19,3 +19,6 @@
 
 // Oneshot mods set by the punctuation mod expire if unused
 #define ONESHOT_TIMEOUT 2000
+
+// Send HID System Display Toggle Int/Ext Mode (usage 0xB5) instead of WIN+P
+#define FRAMEWORK_DISPLAY_TOGGLE_HID
