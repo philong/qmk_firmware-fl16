@@ -29,6 +29,11 @@
 // SDB is mapped to GP22
 //#define PICO_FL16
 
+// Send HID System Display Toggle Int/Ext Mode (usage 0xB5) instead of WIN+P for KC_SCRN.
+// Note: Widens SYSTEM_CONTROL_USAGE_MAXIMUM to 0x00B5, which may cause Steam to
+// misidentify the keyboard as a gamepad (see QMK #26295).
+//#define FRAMEWORK_DISPLAY_TOGGLE_HID
+
 // Enable serial number. Calls into dyn_serial_number_string* functions
 #define SERIAL_NUMBER_DYNAMIC
 

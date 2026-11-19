@@ -306,12 +306,24 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       return true;
 #endif
     case KC_SCRN:
+#ifdef FRAMEWORK_DISPLAY_TOGGLE_HID
       // Send HID System Display Toggle Int/Ext Mode (usage 0xB5)
       if (record->event.pressed) {
         host_system_send(SYSTEM_DISPLAY_TOGGLE_INT_EXT);
       } else {
         host_system_send(0);
       }
+#else
+      // Simulate press WIN+P
+      // Works (at least) on Windows and GNOME
+      if (record->event.pressed) {
+        register_code(KC_LGUI);
+        register_code(KC_P);
+      } else {
+        unregister_code(KC_P);
+        unregister_code(KC_LGUI);
+      }
+#endif
       return false; // Skip all further processing of this key
     // Copilot key
     // Simulate press WIN+SHIFT+F23
